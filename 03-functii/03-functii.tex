@@ -1,0 +1,399 @@
+\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
+
+\usepackage[export]{adjustbox}
+\usepackage{../tslides}
+\usepackage[all]{xy}
+\usepackage{pgfplots}
+\usepackage{flowchart}
+\usetikzlibrary{arrows,positioning,calc}
+\lstset{language=Haskell}
+
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\title[PD---Funcții]{Programare declarativă}
+\subtitle{Operatori, Funcții (din nou), Recursie (din nou)}
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Operatori}
+\begin{frame}[fragile]{Operatorii sunt funcții}{Operatori Booleeni}
+\begin{asciihs}
+not' :: Bool -> Bool
+\end{asciihs}
+\onslide<2->
+\vspace{-2ex}
+\begin{asciihs}
+not' True = False
+not' False = True
+\end{asciihs}
+\onslide<3->
+\begin{asciihs}
+(&&&) :: Bool -> Bool -> Bool
+\end{asciihs}
+\onslide<4->
+\vspace{-2ex}
+\begin{asciihs}
+True &&& b = b
+False &&& _ = False
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Funcțiile sunt operatori}{Operatori aritmetici}
+\begin{asciihs}
+Prelude> mod 5 2
+1
+Prelude> 5 `mod` 2
+1
+\end{asciihs}
+\onslide<2->
+\begin{asciihs}
+divide :: Int -> Int -> Bool
+\end{asciihs}
+\vspace{-2ex}
+\onslide<3->
+\begin{asciihs}
+x `divide` y = y `mod` x == 0
+\end{asciihs}
+\onslide<4->
+\begin{asciihs}
+apartine :: Int -> [Int] -> Bool
+\end{asciihs}
+\vspace{-2ex}
+\onslide<5->
+\begin{asciihs}
+x `apartine` []       = False
+x `apartine` (y:xs)   = x == y || (x `apartine` xs) 
+\end{asciihs}
+
+\end{frame}
+
+\begin{frame}[fragile]
+{Precedență și asociativitate}
+\begin{asciihs}
+Prelude> 3+5*4:[6]++8-2+3:[2]==[23,6,9,2]||True==False
+\end{asciihs}
+\vspace{-2ex}
+\onslide<2->
+\begin{asciihs}
+True
+\end{asciihs}
+
+\onslide<3->
+\hspace*{-1ex}\begin{tabular}{|l|l|l|l|}
+\hline
+Precedence & Left associative &	Non-associative &	Right associative\\
+\hline
+9&	\lstinline$!!$&	&	\lstinline$.$
+\\\hline
+8&	&	&	\lstinline$^$, \lstinline$^^$, \lstinline$**$
+\\\hline
+7&	\lstinline$*$, \lstinline$/$, \lstinline$`div`$, \lstinline$`mod`$, &&
+\\
+&\lstinline$`rem`$, \lstinline$`quot`$		&&
+\\\hline
+6&	\lstinline$+$, \lstinline$-$ &&
+\\\hline
+5&	&	&	\lstinline$:$, \lstinline$++$
+\\\hline
+4&	&	\lstinline$==$, \lstinline$/=$, \lstinline$<$, \lstinline$<=$, \lstinline$>$, \lstinline$>=$,&
+\\
+&& \lstinline$`elem`$, \lstinline$`notElem`$	&
+\\\hline
+3&	&	&	\lstinline$&&$
+\\\hline
+2&	&	&	\lstinline$||$
+\\\hline
+1&	\lstinline$>>$, \lstinline$>>=$	&	&
+\\\hline
+0&	&	&	\lstinline|$|, \lstinline|$!|, \lstinline$`seq`$
+\\\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}
+[fragile]
+{Declararea precedenței și a modului de grupare}
+{\lstinline$infix$, \lstinline$infixl$, \lstinline$infixr$} 
+\onslide<3->\ 
+{\color<3>{blue}%
+\begin{asciihs}
+infixl 6 <+>
+\end{asciihs}}
+\onslide<1->
+\vspace*{-2ex}%
+\begin{asciihs}
+(<+>) :: Int -> Int -> Int
+x <+> y = x + y + 1
+\end{asciihs}
+\begin{asciihs}
+*Main> 1 <+> 2 * 3 <+> 4
+\end{asciihs}
+
+\onslide<2->
+\vspace{-1ex}
+\alt<3->{{\color<3>{blue}
+\lstinline$13$}
+}{
+\lstinline$32$\hfill\lstinline$-- (1 <+> 2) * (3 <+> 4)$
+}
+\vfill
+\onslide<6->\ 
+{\color<6>{blue}%
+\begin{asciihs}
+infix 4 `egal`
+\end{asciihs}}
+\onslide<4->
+\vspace*{-2ex}%
+\begin{asciihs}
+egal :: Float -> Float -> Bool
+x `egal` y = abs(x - y) <= 0.001
+\end{asciihs}
+\begin{asciihs}
+*Main> 1 / 32 `egal` 1 / 33 
+\end{asciihs}
+
+\onslide<5->
+\vspace{-1ex}
+\alt<6->{
+{\color<6>{blue}
+\lstinline$True$}
+}{
+Eroare de sintaxă \hfill \lstinline$-- (1 / (32 `egal` 1)) / 33$
+}
+
+\vfill\ 
+\end{frame}
+
+
+\begin{frame}<handout:0>[fragile]
+{Precedență și asociativitate}
+\hspace*{-1ex}\begin{tabular}{|l|l|l|l|}
+\hline
+Precedence & Left associative &	Non-associative &	Right associative\\
+\hline
+9&	\lstinline$!!$&	&	\lstinline$.$
+\\\hline
+8&	&	&	\lstinline$^$, \lstinline$^^$, \lstinline$**$
+\\\hline
+7&	\lstinline$*$, \lstinline$/$, \lstinline$`div`$, \lstinline$`mod`$, &&
+\\
+&\lstinline$`rem`$, \lstinline$`quot`$		&&
+\\\hline
+6&	\lstinline$+$, \lstinline$-$ &&
+\\\hline
+5&	&	&	\lstinline$:$, \lstinline$++$
+\\\hline
+4&	&	\lstinline$==$, \lstinline$/=$, \lstinline$<$, \lstinline$<=$, \lstinline$>$, \lstinline$>=$,&
+\\
+&& \lstinline$`elem`$, \lstinline$`notElem`$	&
+\\\hline
+3&	&	&	\lstinline$&&$
+\\\hline
+2&	&	&	\lstinline$||$
+\\\hline
+1&	\lstinline$>>$, \lstinline$>>=$	&	&
+\\\hline
+0&	&	&	\lstinline|$|, \lstinline|$!|, \lstinline$`seq`$
+\\\hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}[fragile]
+{De ce?}
+
+\begin{block}
+{De ce este operatorul \alert{-} asociativ la stanga?}
+\onslide<2->
+\lstinline$5 - 2 - 1 == (5 - 2) - 1$\hfill \lstinline$--$ \hfill \lstinline$/= 5 - (2 - 1)$
+\end{block}
+
+\onslide<3->
+\begin{block}
+{De ce este operatorul \alert{:} asociativ la dreapta?}
+\onslide<4->
+\lstinline$5 : 2 : [] == 5 : (2 : [])$
+\end{block}
+
+\onslide<6->
+\begin{block}
+{Care este complexitatea aplicării operatorului \alert{++}?}
+\vspace{-2ex}
+\begin{asciihs}
+(++) :: [a] -> [a] -> [a]
+[] ++ ys = ys
+(x:xs) ++ ys = x:(xs ++ ys)
+\end{asciihs}
+\onslide<7->
+liniară în lungimea primului argument
+\end{block}
+
+\onslide<5->
+\begin{block}
+{De ce este operatorul \alert{++} asociativ la dreapta?}
+\onslide<8->
+Vrem ca primul argument să fie cât mai mic 
+\lstinline$l1 ++ l2 ++ l3 ++ l4 ++ l5 == l1 ++ (l2 ++ (l3 ++ (l4 ++ l5)))$
+\end{block}
+\end{frame}
+
+
+\section{Recursie (din nou)}
+\subsection{Progresii aritmetice}
+\begin{frame}[fragile]{Generarea \lstinline$[m..n]$}
+\begin{asciihs}
+Prelude> [3..7]
+[3,4,5,6,7]
+Prelude> enumFromTo 3 7
+[3,4,5,6,7]
+\end{asciihs}
+
+\lstinline$[m..n]$ este o notație pentru  \lstinline$enumFromTo m n$
+\begin{asciihs}
+enumFromTo :: Integer -> Integer -> [Integer]
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+enumFromTo m n | m > n     = []
+               | otherwise = m : enumFromTo (m + 1) n
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Generarea \lstinline$[m..]$}
+
+\lstinline$[m..]$ este o notație pentru  \lstinline$enumFrom m$
+\begin{asciihs}
+enumFrom :: Integer -> [Integer]
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+enumFrom m = m : enumFrom (m + 1)
+\end{asciihs}
+
+\begin{block}{Exemplu de rulare}
+\begin{asciihs}
+enumFrom 4 
+  = 4 : enumFrom 5
+  = 4 : 5 : enumFrom 6
+  = 4 : 5 : 6 : enumFrom 7
+  = 4 : 5 : 6 : 7 : enumFrom 8 
+  = .......
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{zip și search}
+\begin{frame}[fragile]{Zip}
+Zip împerechează (în ordine, câte două) elementele a două liste 
+\begin{asciihs}
+zip :: [a] -> [b] -> [(a,b)]
+\end{asciihs}
+\onslide<2->
+\vspace{-2ex}
+\begin{asciihs}
+zip [] ys = []
+zip xs [] = []
+zip (x:xs) (y:ys) = (x, y) : zip xs ys
+\end{asciihs}
+
+\begin{block}{Exemplu de rulare}
+\begin{asciihs}
+zip [0,1,2] "abc"
+  = (0,'a') : zip [1,2] "bc"
+  = (0,'a') : ((1,'b') : zip [2] "c")
+  = (0,'a') : ((1,'b') : ((2,'c') : zip [] ""))
+  = (0,'a') : ((1,'b') : ((2,'c') : []))
+  = [(0,'a'),(1,'b'),(2,'c')]
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Zip cu liste infinite}
+\begin{asciihs}
+zip :: [a] -> [b] -> [(a,b)]
+zip [] ys = []
+zip xs [] = []
+zip (x:xs) (y:ys) = (x, y) : zip xs ys
+\end{asciihs}
+
+\begin{block}{Exemplu de rulare (leneșă)}
+\begin{asciihs}
+zip [0..] "abc"
+  = zip (0:[1..]) "abc"
+  = zip (0:[1..]) ('a':"bc")
+  = (0,'a') : zip [1..] "bc"
+  = (0,'a') : ((1,'b') : zip [2..] "c")
+  = (0,'a') : ((1,'b') : ((2,'c') : zip [3..] ""))
+  = (0,'a') : ((1,'b') : ((2,'c') : zip (3:[4..]) ""))
+  = (0,'a') : ((1,'b') : ((2,'c') : []))
+  = [(0,'a'),(1,'b'),(2,'c')]
+\end{asciihs}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Produs scalar}
+Pentru doi vectori $\overline{a}$ și $\overline{b}$ de aceeași lungime,
+produsul scalar este $\displaystyle\sum_i a_i*b_i$
+\begin{asciihs}
+dot :: Num a => [a] -> [a] -> a
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+dot xs ys = sum [x * y | (x,y) <- xs `zip` ys]
+\end{asciihs}
+
+\begin{block}{Exemplu de rulare}
+\begin{asciihs}
+[1,2,3] `dot` [4,5,6] 
+  = sum [x * y | (x,y) <- [1,2,3] `zip` [4,5,6]] 
+  = sum [x * y | (x,y) <- [(1,4),(2,5),(3,6)]] 
+  = sum [1*4,2*5,3*6] 
+  = sum [4,10,18] 
+  = 720
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Search}
+search caută toate pozițiile dintr-o listă pe care apare un element dat.
+\begin{asciihs}
+search :: Eq a => [a] -> a -> [Int]
+\end{asciihs}
+\onslide<2->
+\vspace{-2ex}
+\begin{asciihs}
+search xs x = [i | (i,y) <- [0..] `zip` xs, y == x]
+\end{asciihs}
+
+\begin{block}{Exemplu de rulare}
+\begin{asciihs}
+search "abac" 'a'
+= [i | (i,y) <- [0..] `zip` "abac", y == 'a']
+= [i | (i,y) <- [(0,'a'),(1,'b'),(2,'a'),(3,'c')], y == 'a']
+= [0|'a' == 'a'] ++ [1 | 'b' == 'a'] ++ [2 | 'a' == 'a'] ++ [3 | 'c' == 'a']
+= [0,2]
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\end{document}
+
+
+
