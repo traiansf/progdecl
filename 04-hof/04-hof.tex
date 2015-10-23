@@ -1,0 +1,918 @@
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
+
+\usepackage[export]{adjustbox}
+\usepackage{../tslides}
+\usepackage[all]{xy}
+\usepackage{pgfplots}
+\usepackage{flowchart}
+\usetikzlibrary{arrows,positioning,calc}
+\lstset{language=Haskell}
+\lstset{escapeinside={(*@}{@*)}}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\title[PD---Funcții de ordin înalt]{Programare declarativă}
+\subtitle{Map, Filter, Fold}
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Map (Transformarea fiecărui element dintr-o listă)}
+
+\subsection{Exemple}
+
+\begin{frame}[fragile]{Pătrate}
+\begin{block}{}
+Definiți o funcție care pentru o listă de numere întregi dată  ridică la pătrat fiecare element din listă.
+\begin{asciihs}
+*Main> squares [1,-2,3]
+[1,4,9]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares xs = [ x * x | x <- xs ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares []     = []
+squares (x:xs) = x*x : squares xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+{Coduri ASCII}
+\begin{block}{}
+Transformați un șir de caractere în lista codurilor ASCII ale caracterelor.
+\begin{asciihs}
+*Main> ords "a2c3"
+[97,50,99,51]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+ords :: [Char] -> [Int]
+ords xs = [ ord x | x <- xs ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+ords :: [Char] -> [Int]
+ords []     = []
+ords (x:xs) = ord x : ords xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{Funcția map}
+
+\begin{frame}[fragile]{Funcția \lstinline$map$}{Definiție}
+\begin{block}{}
+Date fiind o funcție de transformare și o listă, aplicați funcția fiecărui element al unei liste date.
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+map f xs = [ f x | x <- xs ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+map f []     = []
+map f (x:xs) = f x : map f xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Exemplu --- Pătrate}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares xs = [ x * x | x <- xs ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares []     = []
+squares (x:xs) = x*x : squares xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$map$}
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares xs = map sqr xs
+  where sqr x = x * x
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Map în acțiune}{Varianta descriptivă}
+\begin{minipage}{.49\columnwidth}%
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares xs = map sqr xs
+  where sqr x = x * x
+\end{asciihs}
+\end{minipage}
+\begin{minipage}{.49\columnwidth}
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+map f xs = [ f x | x <- xs ]
+\end{asciihs}
+\end{minipage}
+
+\vfill
+squares [1,2,3]
+
+\medskip
+= map sqr [1,2,3]
+
+\medskip
+\onslide<2->
+= [ sqr x | x <- [1,2,3]]
+
+\medskip
+\onslide<3->
+= [ sqr 1 ] ++ [ sqr 2 ] ++ [ sqr 3 ]
+
+\medskip
+= [ 1, 4, 9 ]
+
+\vfill\
+\end{frame}
+
+
+\begin{frame}[fragile]{Map în acțiune}{Varianta recursivă}
+\begin{minipage}{.49\columnwidth}%
+\begin{asciihs}
+squares :: [Int] -> [Int]
+squares xs = map sqr xs
+  where sqr x = x * x
+\end{asciihs}
+\end{minipage}
+\begin{minipage}{.49\columnwidth}
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+map f []     = []
+map f (x:xs) = f x : map f xs
+\end{asciihs}
+\end{minipage}
+
+\vfill
+squares [1,2,3]
+
+\medskip
+= map sqr [1,2,3]
+
+\medskip
+= map sqr (1:2:3:[])
+
+\medskip
+\onslide<2->
+= sqr 1 : map sqr (2:3:[])
+
+\medskip
+\onslide<3->
+= sqr 1 : sqr 2: map sqr (3:[])
+
+\medskip
+= sqr 1 : sqr 2: sqr 3: map sqr []
+
+\medskip
+= sqr 1 : sqr 2: sqr 3: []
+
+\medskip
+= [ 1, 4, 9 ]
+
+\vfill\
+\end{frame}
+
+\begin{frame}[fragile]
+{Exemplu --- Coduri ASCII}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+ords :: [Char] -> [Int]
+ords xs = [ ord x | x <- xs ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+ords :: [Char] -> [Int]
+ords []     = []
+ords (x:xs) = ord x : ords xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$map$}
+\begin{asciihs}
+ords :: [Char] -> [Int]
+ords xs = map ord xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\section{Filter --- Selectarea elementelor dintr-o listă}
+\subsection{Exemple}
+
+\begin{frame}[fragile]{Selectarea elementelor pozitive dintr-o listă}
+\begin{block}{}
+\begin{asciihs}
+*Main> positives [1,-2,3]
+[1,3]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+positives :: [Int] -> [Int]
+positives xs = [ x | x <- xs, x > 0 ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+positives :: [Int] -> [Int]
+positives []                 = []
+positives (x:xs) | x > 0     = x : positives xs
+                 | otherwise = positives xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Selectarea cifrelor dintr-un șir de caractere}
+\begin{block}{}
+\begin{asciihs}
+*Main> digits "a2c3"
+"23"
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+digits :: [Char] -> [Char]
+digits xs = [ x | x <- xs, isDigit x ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+digits :: [Char] -> [Char]
+digits []                 = []
+digits (x:xs) | isDigit x = x : digits xs
+              | otherwise = digits xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{Funcția map}
+
+\begin{frame}[fragile]{Funcția \lstinline$filter$}{Definiție}
+\begin{block}{}
+Date fiind un predicat (funcție booleană) și o listă, selectați elementele din listă care satisfac predicatul.
+\end{block}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+filter :: (a -> Bool) -> [a] -> [a]
+filter p xs = [ x | x <- xs, p x ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+filter :: (a -> Bool) -> [a] -> [a]
+filter p []                 = []
+filter p (x:xs) | p x       = x : filter p xs
+                | otherwise = filter p xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Exemplu --- Pozitive}
+\begin{block}{Soluție \structure{descriptivă}}
+\vspace{-1ex}
+\begin{asciihs}
+positives :: [Int] -> [Int]
+positives xs = [ x | x <- xs, x > 0 ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\vspace{-1ex}
+\begin{asciihs}
+positives :: [Int] -> [Int]
+positives []                 = []
+positives (x:xs) | x > 0     = x : positives xs
+                 | otherwise = positives xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$filter$}
+\vspace{-1ex}
+\begin{asciihs}
+positives :: [Int] -> [Int]
+positives xs = filter pos xs
+  where pos x = x > 0
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Exemplu --- Cifre}
+\begin{block}{Soluție \structure{descriptivă}}
+\begin{asciihs}
+digits :: [Char] -> [Char]
+digits xs = [ x | x <- xs, isDigit x ]
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+digits :: [Char] -> [Char]
+digits []                 = []
+digits (x:xs) | isDigit x = x : digits xs
+              | otherwise = digits xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$filter$}
+\begin{asciihs}
+digits :: [Char] -> [Char]
+digits xs = filter isDigit xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\section{Fold --- Agregarea elementelor dintr-o listă}
+
+\subsection{Exemple}
+\begin{frame}[fragile]{Suma}
+\begin{block}{}
+Definiți o funcție care dată fiind o listă de numere întregi calculează suma elementelor din listă.
+\begin{asciihs}
+*Main> sum [1,2,3,4]
+10
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+sum :: [Int] -> Int
+sum []     = 0
+sum (x:xs) = x + sum xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Produs}
+\begin{block}{}
+Definiți o funcție care dată fiind o listă de numere întregi calculează produsul elementelor din listă.
+\begin{asciihs}
+*Main> product [1,2,3,4]
+24
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+product :: [Int] -> Int
+product []     = 1
+product (x:xs) = x * sum xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Concatenare}
+\begin{block}{}
+Definiți o funcție care concatenează o listă de liste.
+\begin{asciihs}
+*Main> concat [[1,2,3],[4,5]]
+[1,2,3,4,5]
+
+*Main> concat ["con","ca","te","na","re"]
+"concatenare"
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+concat :: [[a]] -> [a]
+concat []       = []
+concat (xs:xss) = xs ++ concat xss
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{Funcția foldr}
+
+
+\begin{frame}[fragile]{Funcția \lstinline$foldr$}{Definiție}
+\begin{block}{}
+Date fiind o funcție de actualizare a valorii calculate cu un element curent, o valoare inițială, și o listă, calculați valoare obținută prin aplicarea repetată a funcției de actualizare fiecărui element din listă.
+\end{block}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr f i []     = i
+foldr f i (x:xs) = f x (foldr i xs)
+\end{asciihs}
+\end{block}
+
+\onslide<2>
+\begin{block}{Soluție \structure{recursivă} cu operator infix}
+\begin{asciihs}
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr op i []     = i
+foldr op i (x:xs) = x `op` (foldr i xs)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Suma}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+sum :: [Int] -> Int
+sum []     = 0
+sum (x:xs) = x + sum xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$foldr$}
+\begin{asciihs}
+sum :: [Int] -> Int
+sum xs = foldr (+) 0 xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Produs}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+product :: [Int] -> Int
+product []     = 1
+product (x:xs) = x * sum xs
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$foldr$}
+\begin{asciihs}
+product :: [Int] -> Int
+product xs = foldr (*) 1 xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Concatenare}
+\begin{block}{Soluție \structure{recursivă}}
+\begin{asciihs}
+concat :: [[a]] -> [a]
+concat []       = []
+concat (xs:xss) = xs ++ concat xss
+\end{asciihs}
+\end{block}
+\begin{block}{Soluție folosind \lstinline$foldr$}
+\begin{asciihs}
+concat :: [Int] -> Int
+concat xs = foldr (++) [] xs
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Map în acțiune}{Varianta recursivă}
+\begin{asciihs}
+sum :: [Int] -> Int
+sum xs = foldr (+) 0 xs
+
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr _ i []      = i
+foldr op i (x:xs) = x `op` (foldr i xs)
+\end{asciihs}
+
+\vfill
+sum [1,2]
+
+\medskip
+= foldr (+) 0 [1,2]
+
+\medskip
+= foldr (+) 0 (1:2:[])
+
+\medskip
+\onslide<2->
+= 1 + foldr (+) 0 (2:[])
+
+\medskip
+\onslide<3->
+= 1 + 2 + 0
+
+\medskip
+= 3
+
+\medskip
+
+\vfill\
+\end{frame}
+
+\section{Map, Filter, Fold --- combinate}
+
+\begin{frame}[fragile]{Suma pătratelor numerelor pozitive}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = sum (squares (positives xs))
+
+f :: [Int] -> Int
+f xs = sum [ x*x | x <- xs, x > 0 ]
+
+f :: [Int] -> Int
+f []                = []
+f (x:xs)| x > 0     = (x*x) + f xs
+        | otherwise = f xs
+        
+f :: [Int] -> Int
+f xs = foldr (+) 0 (map sqr (filter pos xs))
+  where
+    sqr x = x * x
+    pos x = x > 0
+\end{asciihs}
+\end{frame}
+
+\section{Currying}
+
+\begin{frame}[fragile]{Adunarea numerelor}
+\begin{asciihs}
+add :: Int -> Int -> Int
+add x y = x + y
+
+
+  add 3 4
+=
+  3 + 4
+=
+  7
+\end{asciihs}
+
+\end{frame}
+
+\begin{frame}[fragile]{Adunarea numerelor}
+\begin{asciihs}
+add :: Int -> (Int -> Int)
+(add x) y = x + y
+
+
+  (add 3) 4
+=
+  3 + 4
+=
+  7
+\end{asciihs}
+
+\begin{block}{Currying}
+A funcție cu două argumente este de fapt o funcție de primul argument
+care întoarce o funcție de al doilea argument.
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Currying}
+A funcție cu două argumente este de fapt o funcție de primul argument
+care întoarce o funcție de al doilea argument.
+\begin{asciihs}
+add :: Int -> (Int -> Int)
+add x = g
+  where
+  g y = x + y
+
+  (add 3) 4
+=
+  g 4
+    where
+    g y = 3 + y
+=
+  3 + 4
+=
+  7
+\end{asciihs}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Currying}{Haskell Curry (1900--1982)}
+\begin{asciihs}
+add :: Int -> (Int -> Int)
+add x y = x + y
+\end{asciihs}
+este echivalent (semantic) cu 
+\begin{asciihs}
+add :: Int -> (Int -> Int)
+add x = g
+  where
+  g y = x + y
+\end{asciihs}
+
+\vfill
+De asemeni,
+\begin{asciihs}
+  add 3 4
+\end{asciihs}
+este echivalent (semantic) cu 
+\begin{asciihs}
+  (add 3) 4
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Aplicații Currying --- Stilul funcțional}
+\begin{asciihs}
+foldr :: (a -> a -> a) -> a -> [a] -> a
+foldr f a []     = a
+foldr f a (x:xs) = f x (foldr f a xs)
+
+sum :: [Int] -> Int
+sum xs = foldr (+) 0 xs
+\end{asciihs}
+este echivalent (semantic) cu 
+\begin{asciihs}
+foldr :: (a -> a -> a) -> a -> (*@\color{blue}(@*)[a] -> a(*@\color{blue})@*)
+foldr f a []     = a
+foldr f a (x:xs) = f x (foldr f a xs)
+sum :: [Int] -> Int
+sum = foldr (+) 0
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Aplicații Currying --- Stilul funcțional}
+{Suma, Produs, Concatenare}
+\begin{asciihs}
+sum :: [Int] -> Int
+sum = foldr (+) 0
+
+product :: [Int] -> Int
+product = foldr (*) 1
+
+concat :: [[a]] -> [a]
+concat = foldr (++) []
+\end{asciihs}
+\end{frame}
+
+\section{Funcții anonime}
+
+\begin{frame}[fragile]{Simplificăm definiția}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 (map sqr (filter pos xs))
+  where
+    sqr x = x * x
+    pos x = x > 0
+\end{asciihs}
+\begin{alertblock}{Simplificare incorectă}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 (map (*@\color{red}{(x * x)} @*) (filter (*@\color{red}{(x > 0)}@*) xs))
+\end{asciihs}
+\end{alertblock}
+\onslide<2>
+\begin{block}{Simplificare corectă}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 
+         (map (*@\color{blue}(\textbackslash\; x -> x * x) @*) 
+            (filter (*@\color{blue}{(\textbackslash\; x -> x > 0)} @*) xs))
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Funcții anonime / Lambda Calcul}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 
+         (map (*@\color{blue}(\textbackslash\; x -> x * x) @*) 
+            (filter (*@\color{blue}{(\textbackslash\; x -> x > 0)} @*) xs))
+\end{asciihs}
+
+\begin{block}{Lambda Calcul}
+\begin{itemize}
+\item Introdus de logicianul Alonzo Church (1903--1995) pentru dezvoltarea unei teorii a calculabilității
+\item În Haskell, \structure{\textbackslash} e folosit în locul simbolului \structure{$\lambda$}
+\item Matematic scriem 
+\begin{tabular}{c@{ în loc de }c}
+$\lambda x. x * x$ & \textbackslash\; x -> x * x
+\\
+$\lambda x. x > 0$ & \textbackslash\; x -> x > 0
+\end{tabular}
+\end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Evaluarea $\lambda$-expresiilor}
+\begin{asciihs}
+  (\x -> x > 0) 3
+=
+  let x = 3 in x > 0
+=
+  3 > 0
+=
+  True
+
+
+  (\x -> x * x) 3
+=
+  let x = 3 in x * x
+=
+  3 * 3
+=
+  9
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Explicație pentru Currying folosind $\lambda$-expresii }
+\begin{asciihs}
+  (\x -> \y -> x + y) 3 4
+=
+  ((\x -> (\y -> x + y)) 3) 4
+=
+  (let x = 3 in \y -> x + y) 4
+=
+  (\y -> 3 + y) 4
+=
+  let y = 4 in 3 + y
+=
+  3 + 4
+=
+  7
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Evaluarea $\lambda$-expresiilor}{$\beta$-reducție}
+Formula generală pentru evaluarea aplicării $\lambda$-expresiilor este prin substitutirea
+argumentului formal cu argumentul actual în corpul funcției:
+\[(\lambda x . N)\; M  \xrightarrow{\beta} M[N / x]\]
+
+$\beta$-reducția poate fi descrisă de următoarea identitate Haskell:
+\begin{asciihs}
+(\ x . n) m == let x = m in n
+\end{asciihs}
+\end{frame}
+
+
+\section{Secțiuni (Tăieturi)}
+
+\begin{frame}[fragile]{Secțiuni}
+\begin{itemize}
+\item \structure{\lstinline$(> 0)$} e forma scurtă a lui \lstinline$(\x -> x > 0)$
+\item \structure{\lstinline$(2 *)$} e forma scurtă a lui \lstinline$(\x -> 2 * x)$
+\item \structure{\lstinline$(+ 1)$} e forma scurtă a lui \lstinline$(\x -> x + 1)$
+\item \structure{\lstinline$(2 ^)$} e forma scurtă a lui \lstinline$(\x -> 2 ^ x)$
+\item \structure{\lstinline$(^ 2)$} e forma scurtă a lui \lstinline$(\x -> x ^ 2)$
+\item<2> \structure{\lstinline$(`op` 2)$} e forma scurtă a lui \lstinline$(\x -> x `op` 2)$
+\item<2> \structure{\lstinline$(2 `op`)$} e forma scurtă a lui \lstinline$(\x -> 2 `op` x)$
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Secțiuni --- Exemplu}
+\begin{block}{Folosind $\lambda$-expresii}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 
+         (map (*@\color{blue}(\textbackslash\; x -> x * x) @*) 
+            (filter (*@\color{blue}{(\textbackslash\; x -> x > 0)} @*) xs))
+\end{asciihs}
+\end{block}
+
+\begin{block}{Folosind secțiuni}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 (map (*@\color{blue}( \^{} 2) @*) (filter (*@\color{blue}{( > 0)} @*) xs))
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\section{Compunerea funcțiilor}
+
+
+\begin{frame}[fragile]{Compunerea funcțiilor --- operatorul $.$}
+\begin{block}{Matematic}
+Date fiind $f : A \rightarrow B$ și $g : B \rightarrow C$, compunerea lor, notată
+$g \circ f : A \rightarrow C$ este dată de formula \[(g \circ f)(x) = g(f(x))\]
+\end{block}
+
+\begin{block}{În Haskell}
+\begin{asciihs}
+(.) :: (b -> c) -> (a -> b) -> (a -> c)
+(g . f) x = g (f x)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Operatorul $.$ --- stilul funcțional}
+\begin{block}{Definiție cu parametru explicit}
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 (*@\color{blue}(@*)map ( ^ 2)  (*@\color{blue}(@*)filter ( > 0) (*@\color{blue}xs)) @*)
+\end{asciihs}
+\end{block}
+
+\begin{block}{Definiție compozițională}
+\begin{asciihs}
+f :: [Int] -> Int
+f = foldr (+) 0 . map ( ^ 2) . filter ( > 0)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+
+
+\section{Map/Filter/Fold în alte limbaje}
+
+\begin{frame}[fragile]{Map/Filter/Reduce în Javascript}
+\begin{lstlisting}[language=JavaScript,basicstyle=\small]
+var strs = ["cezara", "petru", "claudia", "virgil"];
+var maxLength = strs.filter(function(s){
+  return s[0]=='c';
+}).map(function(s){
+  return s.length;
+}).reduce(function(a,b){
+  return a>b?a:b;
+});
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Map/Filter/Reduce în PHP}
+\begin{lstlisting}[language=PHP,basicstyle=\small,morekeywords={array_reduce}]
+$strs = array("cezara", "petru", "claudia", "virgil");
+$max_length = array_reduce(
+  array_map(
+    "strlen",
+    array_filter(
+      $strs,
+      function($s){return $s[0]=='c';})),
+  function($a,$b){
+    return $a>$b?$a:$b;
+  }, 
+  0);
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]{Map/Filter/Reduce în Java 8}
+{\url{http://winterbe.com/posts/2014/07/31/java8-stream-tutorial-examples/}}
+\begin{lstlisting}[language=Java,basicstyle=\small]
+package edu.unibuc.fmi;
+import java.util.*;
+
+public class Main {
+  public static void main(String[] args) {
+    List<String> myList = Arrays.asList(
+        "cezara", "petru", "claudia", "virgil");
+    int l =
+        myList
+            .stream()
+            .filter(s -> s.startsWith("c"))
+            .map(String::length)
+            .reduce(0,
+                    (l1, l2) -> l1 > l2 ? l1 : l2);
+        System.out.println(l);
+    }
+}
+\end{lstlisting}
+\end{frame}
+
+
+
+\subsection{C++}
+
+\begin{frame}[fragile]{Map/Filter/Reduce în C++11}
+{\url{https://meetingcpp.com/tl_files/mcpp/slides/12/FunctionalProgrammingInC++11.pdf}}
+\begin{lstlisting}[language=C++,basicstyle=\small]
+#include <algorithm>
+#include <string>
+#include <iostream>
+using namespace std;
+int main() {
+  vector<string>strs {"cezara", "petru", "claudia", "virgil"};
+  strs.erase(remove_if(strs.begin(), strs.end(),
+                 [](string x){return x[0]!='c';}),
+        strs.end());
+  vector<int>lengths;   
+  transform(strs.begin(), strs.end(), back_inserter(lengths), 
+            [](string x) { return x.length();});
+  int max_length = accumulate(lengths.begin(), lengths.end(),
+                     0,  [](int a,int b){ return a>b?a:b; });     
+  cout << max_length;
+}
+\end{lstlisting}
+\end{frame}
+
+\end{document}
+
+
+
