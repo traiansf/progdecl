@@ -1,0 +1,461 @@
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
+
+\usepackage[export]{adjustbox}
+\usepackage{../tslides}
+\usepackage[all]{xy}
+\usepackage{pgfplots}
+\usepackage{flowchart}
+\usetikzlibrary{arrows,positioning,calc}
+\lstset{language=Haskell}
+\lstset{escapeinside={(*@}{@*)}}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\title[PD---Tipuri date algebrice]{Programare declarativă}
+\subtitle{Tipuri de date algebrice}
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}[fragile]{Ce este un tip de date algebric?}
+
+\onslide<2>
+\begin{block}{Orice!}
+\begin{asciihs}
+data Bool = False | True
+data Season = Winter | Spring | Summer | Fall
+data Shape = Circle Float | Rectangle Float Float
+data List a = Nil | Cons a (List a)
+data Nat = Zero | Succ Nat
+data Exp = Lit Int | Add Exp Exp | Mul Exp Exp
+data Tree a = Empty | Leaf a | Branch (Tree a) (Tree a)
+data Maybe a = Nothing | Just a
+data Pair a b = Pair a b
+data Either a b = Left a | Right b
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{Tipul de date Boolean}
+
+\begin{frame}[fragile]{Tipul de date Boolean}
+\begin{asciihs}
+data Bool = False | True
+
+not :: Bool -> Bool
+not False  =  True
+not True   =  False
+
+(&&) :: Bool -> Bool -> Bool
+False && q   =  False
+True  && q   =  q
+
+(||) :: Bool -> Bool -> Bool
+False || q   =  q
+True  || q   =  True
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Definirea egalității și a reprezentării}
+{Eq și Show}
+\begin{block}{Eq}
+\begin{asciihs}
+eqBool :: Bool -> Bool -> Bool
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+eqBool False False = True
+eqBool True  True  = True
+eqBool _     _     = False
+\end{asciihs}
+\end{block}
+
+\onslide<1->
+\begin{block}{Show}
+\begin{asciihs}
+showBool :: Bool -> String
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+showBool False = "False"
+showBool True  = "True"
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\subsection{Anotimpuri}
+
+\begin{frame}[fragile]{Anotimpuri}
+\begin{asciihs}
+data Season = Spring | Summer | Autumn | Winter
+
+next :: Season -> Season
+next Spring = Summer
+next Summer = Autumn
+next Autumn = Winter
+next Winter = Spring
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Definirea egalității și a reprezentării}
+{Eq și Show}
+\begin{asciihs}
+eqSeason :: Season -> Season -> Bool
+eqSeason Spring Spring = True
+eqSeason Summer Summer = True
+eqSeason Autumn Autumn = True
+eqSeason Winter Winter = True
+eqSeason _      _      = False
+
+
+showSeason :: Season -> String
+showSeason Spring = "Spring"
+showSeason Summer = "Summer"
+showSeason Autumn = "Autumn"
+showSeason Winter = "Winter"
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Enumerări și indici}
+\begin{asciihs}
+  data Season = Winter | Spring | Summer | Fall
+  toInt :: Season -> Int
+  toInt Winter = 0
+  toInt Spring = 1
+  toInt Summer = 2
+  toInt Fall   = 3
+
+  fromInt :: Int -> Season
+  fromInt 0 = Winter
+  fromInt 1 = Spring
+  fromInt 2 = Summer
+  fromInt 3 = Fall
+
+  next :: Season -> Season
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+  next x = fromInt ((toInt x + 1) `mod` 4)
+
+\end{asciihs}
+\onslide<1->
+\begin{asciihs}
+  eqSeason :: Season -> Season -> Bool
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+  eqSeason x y = (toInt x == toInt y)
+
+\end{asciihs}
+\end{frame}
+
+\subsection{Forme geometrice}
+
+\begin{frame}[fragile]{Cercuri și dreptunghiuri}
+\begin{asciihs}
+  type   Radius   =   Float
+  type   Width    =   Float
+  type   Height   =   Float
+
+  data   Shape    =   Circle Radius
+                  |   Rect Width Height
+
+  area :: Shape -> Float
+  area (Circle r) = pi * r^2
+  area (Rect w h) = w * h
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Definirea egalității și a reprezentării}
+{Eq și Show}
+\begin{asciihs}
+  eqShape :: Shape -> Shape -> Bool
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+  eqShape (Circle r) (Circle r')  = (r == r')
+  eqShape (Rect w h) (Rect w' h') = (w == w') && (h == h')
+  eqShape _          _            = False
+
+\end{asciihs}
+\onslide<1->
+\begin{asciihs}
+  showShape :: Shape -> String
+\end{asciihs}
+\onslide<2>
+\vspace{-2ex}
+\begin{asciihs}
+  showShape (Circle r) = "Circle " ++ showF r
+  showShape (Rect w h) = "Rect " ++ showF w 
+      ++ " " ++ showF h
+
+  showF :: Float -> String
+  showF x | x >= 0     = show x
+          | otherwise = "(" ++ show x ++ ")"
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Teste și operatori de proiecție}
+\begin{asciihs}
+  isCircle :: Shape -> Bool
+  isCircle (Circle r) = True
+  isCircle _          = False
+
+  isRect :: Shape -> Bool
+  isRect (Rect w h) = True
+  isRect _          = False
+
+  radius :: Shape -> Float
+  radius (Circle r) = r
+
+  width :: Shape -> Float
+  width (Rect w h) = w
+
+  height :: Shape -> Float
+  height (Rect w h) = h
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Pattern-matching}
+\begin{asciihs}
+  area :: Shape -> Float
+  area (Circle r) = pi * r^2
+  area (Rect w h) = w * h
+
+  area :: Shape -> Float
+  area s =
+    if isCircle s then
+       let
+           r = radius s
+       in
+           pi * r^2
+    else if isRect s then
+       let
+           w = width s
+           h = height s
+       in
+           w * h
+    else error "impossible"
+\end{asciihs}
+\end{frame}
+
+\subsection{Liste}
+
+\begin{frame}[fragile]{Pattern-matching}
+\begin{block}{Declarație ca tip de date algebric}
+\begin{asciihs}
+   data  List a  = Nil
+                 | Cons a (List a)
+
+   append :: List a -> List a -> List a
+   append Nil ys          = ys
+   append (Cons x xs) ys = Cons x (append xs ys)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Constructori simboluri}
+
+\begin{block}{Declarație ca tip de date algebric cu simboluri}
+\begin{asciihs}
+data  List a  = Nil
+              | a ::: List a
+  deriving (Show)
+infixr 5 :::
+
+(+++) :: List a -> List a -> List a
+infixr 5 +++
+Nil +++ ys        = ys
+(x ::: xs) +++ ys = x ::: (xs +++ ys)
+\end{asciihs}
+\end{block}
+
+\begin{block}{Comparați cu versiunea folosind notația predefinită}
+\begin{asciihs}
+   (++) :: [a] -> [a] -> [a]
+   [] ++ ys      = ys
+   (x:xs) ++ ys = x : (xs ++ ys)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Definirea egalității și a reprezentării}
+{Eq și Show}
+\begin{asciihs}
+  eqList :: Eq a => List a -> List a -> Bool
+  eqList Nil Nil  = True
+  eqList (x ::: xs)  (y:::ys) = x == y && eqList xs ys
+  eqList _          _            = False
+
+  showList :: Show a => List a -> String
+  showList Nil = "Nil"
+  showList (x ::: xs) = show x ++ " ::: " ++ showList xs 
+\end{asciihs}
+\end{frame}
+
+
+
+\subsection{Numere naturale}
+
+
+\begin{frame}[fragile]{Numerele Naturale (Peano)}
+\begin{block}{Declarație ca tip de date algebric}
+\begin{asciihs}
+   data     Nat   =      Zero
+                  |      Succ Nat
+
+   (^^^) :: Float -> Nat -> Float
+   x ^^^ Zero      = 1.0
+   x ^^^ (Succ n) = x * x ^^^ n
+\end{asciihs}
+\end{block}
+\begin{block}{Comparați cu versiunea folosind notația predefinită}
+\begin{asciihs}
+   (^^) :: Float -> Int -> Float
+   x ^^ 0 = 1.0
+   x ^^ n = x * (x ^^ (n-1))
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Adunare și înmulțire}
+\begin{block}{Definiție pe tipul de date algebric}
+\vspace{-2ex}
+\begin{asciihs}
+   (+++) :: Nat -> Nat -> Nat
+   m +++ Zero     = m
+   m +++ (Succ n) = Succ (m +++ n)
+
+   (***) :: Nat -> Nat -> Nat
+   m *** Zero     = Zero
+   m *** (Succ n) = (m *** n) +++ m
+\end{asciihs}
+\end{block}
+\begin{block}{Comparați cu versiunea folosind notația predefinită}
+\vspace{-2ex}
+\begin{asciihs}
+   (+) :: Int -> Int -> Int
+   m + 0 = m
+   m + n = (m + (n-1)) + 1
+
+   (*) :: Int -> Int -> Int
+   m * 0 = 0
+   m * n = (m * (n-1)) + m
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Date personale}
+\begin{asciihs}
+type FirstName  = String  
+type LastName   = String  
+type Age        = Int  
+type Height     = Float  
+type PhoneNumber = String  
+type Flavor      = String  
+                     
+data Person = Person FirstName LastName Age Height
+    PhoneNumber Flavor
+
+
+\end{asciihs}
+
+\end{frame}
+
+\begin{frame}[fragile]{Proiecții}
+\begin{asciihs}
+    firstName :: Person -> String  
+    firstName (Person firstname _ _ _ _ _) = firstname  
+      
+    lastName :: Person -> String  
+    lastName (Person _ lastname _ _ _ _) = lastname  
+      
+    age :: Person -> Int  
+    age (Person _ _ age _ _ _) = age  
+      
+    height :: Person -> Float  
+    height (Person _ _ _ height _ _) = height  
+      
+    phoneNumber :: Person -> String  
+    phoneNumber (Person _ _ _ _ number _) = number  
+      
+    flavor :: Person -> String  
+    flavor (Person _ _ _ _ _ flavor) = flavor  
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Utilizare}
+\begin{asciihs}
+Main*> let ionel = Person "Ion" "Ionescu" 20 175.2 
+    "0712334567" "Caramel"
+Main*> firstName ionel
+"Ion"  
+Main*> height ionel
+175.2  
+Main*> flavor ionel  
+"Caramel"  
+\end{asciihs}
+\end{frame}
+
+\subsection{Înregistrări}
+
+\begin{frame}[fragile]{Date personale ca înregistrări}
+\begin{asciihs}
+data Person = Person { firstName :: String  
+                     , lastName :: String  
+                     , age :: Int  
+                     , height :: Float  
+                     , phoneNumber :: String  
+                     , flavor :: String  
+                     }
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Utilizare}
+\begin{itemize}
+\item Putem folosi atât forma algebrică cât și cea de înregistrare
+\begin{asciihs}
+ionel = Person "Ion" "Ionescu" 20 175.2 
+    "0712334567" "Caramel"
+
+gigel = Person { firstName = "Gheorghe"
+               , lastName="Georgescu"
+               , age = 30, height = 192.3
+               , phoneNumber = "0798765432"
+               , flavor = "Vanilie" }
+\end{asciihs}
+\item Putem folosi și pattern-matching
+\item Proiecțiile sunt definite automat; sintaxă specializată pentru actualizări%
+\begin{asciihs}
+nextYear :: Person -> Person
+nextYear person = person { age = age person + 1 }
+\end{asciihs}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{De ce algebric?}
+\end{frame}
+
+\end{document}
+
+
+
