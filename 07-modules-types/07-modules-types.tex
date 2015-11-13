@@ -1,4 +1,4 @@
-\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
+\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
 
 \usepackage[export]{adjustbox}
 \usepackage{../tslides}
@@ -845,7 +845,7 @@ Possible fix: add an instance declaration for (Eq (a -> a))
 
 \begin{frame}[fragile]{Clasă de tipuri = dicționar de funcții}
 \begin{asciihs}
-type EqDict a =  EqD (a -> [a] -> Bool)
+type EqDict a =  EqD { eq :: a -> a -> Bool }
 elem :: (*@\color{blue}\tt EqDict a ->@*) a -> [a] -> Bool
 \end{asciihs}
 
@@ -869,7 +869,7 @@ elem (*@\color{blue}\tt (EqD eq)@*) x (y:ys) = x (*@\color{blue}\tt `eq`@*) y ||
 \begin{block}{Folosind funcții de nivel înalt}
 \onslide<2>
 \begin{asciihs}
-elem (*@\color{blue}\tt (EqD eq)@*) x ys     = foldr (||) False (map ((*@\color{blue}\tt eq @*) x) ys)
+elem (*@\color{blue}\tt d@*) x ys     = foldr (||) False (map ((*@\color{blue}\tt eq d@*) x) ys)
 \end{asciihs}
 \end{block}
 \end{frame}
@@ -1008,7 +1008,7 @@ instance (Show a, Show b) => Show (a,b) where
 
 \begin{frame}[fragile]{Mulțimi ca instanță a lui Eq}
 \begin{asciihs}
-  instance Ord a => Eq (Set a) where
+  instance Eq (Set a) where
     s == t = s `equal` t
 \end{asciihs}
 
@@ -1146,146 +1146,140 @@ instance Num Nat where
  Not in scope: data constructor `MkNat`
 \end{asciihs}
 \end{frame}
-\begin{frame}[fragile]{}
-\begin{asciihs}
-\end{asciihs}
-\end{frame}
 
 
-\section{Enumerări}
-
-\begin{frame}[fragile]{Clasa de tipuri Enum}
-\vspace{-2ex}
-\begin{asciihs}
-  class Enum a where
-    toEnum         ::   Int -> a
-    fromEnum       ::   a -> Int
-    succ, pred     ::   a -> a
-    enumFrom       ::   a -> [a]             --   [x..]
-    enumFromTo     ::   a -> a -> [a]        --   [x..y]
-    enumFromThen   ::   a -> a -> [a]        --   [x,y..]
-    enumFromThenTo ::   a -> a -> a -> [a]   --   [x,y..z]
-   -- minimum definition: toEnum, fromEnum
-   succ x           = toEnum (fromEnum x + 1)
-   pred x           = toEnum (fromEnum x - 1)
-   enumFrom x
-     = map toEnum [fromEnum x ..]
-   enumFromTo x y
-     = map toEnum [fromEnum x .. fromEnum y]
-   enumFromThen x y
-     = map toEnum [fromEnum x, fromEnum y ..]
-   enumFromThenTo x y z
-     = map toEnum [fromEnum x, fromEnum y .. fromEnum z]
-\end{asciihs}
-\end{frame}
-\begin{frame}[fragile]{Int ca instanță a lui Enum}
-\begin{asciihs}
-  instance Enum Int where
-    toEnum x          = x
-    fromEnum x        = x
-    succ x            = x+1
-    pred x            = x-1
-    enumFrom x        = iterate (+1) x
-    enumFromTo x y    = takeWhile (<= y) (iterate (+1) x)
-    enumFromThen x y  = iterate (+(y-x)) x
-    enumFromThenTo x y z
-        = takeWhile (<= z) (iterate (+(y-x)) x)
-
-  iterate :: (a -> a) -> a -> [a]
-  iterate f x = x : iterate f (f x)
-
-  takeWhile :: (a -> Bool) -> [a]   ->   [a]
-  takeWhile p []                    =    []
-  takeWhile p (x:xs) | p x          =    x : takeWhile p xs
-                     | otherwise    =    []
-\end{asciihs}
-\end{frame}
-
-\subsection{Anotimpuri}
-
-\begin{frame}[fragile]{Anotimpuri}
-\begin{asciihs}
-  data Season = Winter | Spring | Summer | Fall
-
-  next   :: Season -> Season
-  next   Winter = Spring
-  next   Spring = Summer
-  next   Summer = Fall
-  next   Fall    = Winter
-
-  warm   :: Season -> Bool
-  warm   Winter = False
-  warm   Spring = True
-  warm   Summer = True
-  warm   Fall    = True
-\end{asciihs}
-\end{frame}
-
-\begin{frame}[fragile]{Anotimpuri --- Instanțiere manuala pentru Eq, Ord, Show}
-\vspace{-2ex}
-\begin{asciihs}
-  instance   Eq   Seasons   where
-    Winter   ==   Winter    = True
-    Spring   ==   Spring    = True
-    Summer   ==   Summer    = True
-    Fall     ==   Fall      = True
-    _        ==   _         = False
-  instance   Ord Seasons where
-    Spring   <= Winter = False
-    Summer   <= Winter = False
-    Summer   <= Spring = False
-    Fall     <= Winter = False
-    Fall     <= Spring = False
-    Fall     <= Summer = False
-    _        <= _       = True
-  instance Show Seasons where
-    show Winter = "Winter"
-    show Spring = "Spring"
-    show Summer = "Summer"
-    show Fall   = "Fall"
-\end{asciihs}
-\end{frame}
-
-\begin{frame}[fragile]{Instanță Enum pentru anotimpuri}
-\begin{asciihs}
-  instance Enum Seasons where
-
-    fromEnum     Winter   =    0
-    fromEnum     Spring   =    1
-    fromEnum     Summer   =    2
-    fromEnum     Fall     =    3
-
-    toEnum   0    =   Winter
-    toEnum   1    =   Spring
-    toEnum   2    =   Summer
-    toEnum   3    =   Fall
-\end{asciihs}
-\end{frame}
-
-\begin{frame}[fragile]{Anotimpuri folosind derivare automată}
-\begin{asciihs}
-  data Season = Winter | Spring | Summer | Fall
-                deriving (Eq, Ord, Show, Enum)
-
-  next :: Season -> Season
-  next x = toEnum ((fromEnum x + 1) `mod` 4)
-
-  warm :: Season -> Bool
-  warm x = x `elem` [Spring .. Fall]
-\end{asciihs}
-
-\vfill
-Toate funcțiile pentru clasele derivate sunt generate automat!
-\end{frame}
-
-%Seasons, revisited
+%\section{Enumerări}
+%
+%\begin{frame}[fragile]{Clasa de tipuri Enum}
+%\vspace{-2ex}
+%\begin{asciihs}
+%  class Enum a where
+%    toEnum         ::   Int -> a
+%    fromEnum       ::   a -> Int
+%    succ, pred     ::   a -> a
+%    enumFrom       ::   a -> [a]             --   [x..]
+%    enumFromTo     ::   a -> a -> [a]        --   [x..y]
+%    enumFromThen   ::   a -> a -> [a]        --   [x,y..]
+%    enumFromThenTo ::   a -> a -> a -> [a]   --   [x,y..z]
+%   -- minimum definition: toEnum, fromEnum
+%   succ x           = toEnum (fromEnum x + 1)
+%   pred x           = toEnum (fromEnum x - 1)
+%   enumFrom x
+%     = map toEnum [fromEnum x ..]
+%   enumFromTo x y
+%     = map toEnum [fromEnum x .. fromEnum y]
+%   enumFromThen x y
+%     = map toEnum [fromEnum x, fromEnum y ..]
+%   enumFromThenTo x y z
+%     = map toEnum [fromEnum x, fromEnum y .. fromEnum z]
+%\end{asciihs}
+%\end{frame}
+%\begin{frame}[fragile]{Int ca instanță a lui Enum}
+%\begin{asciihs}
+%  instance Enum Int where
+%    toEnum x          = x
+%    fromEnum x        = x
+%    succ x            = x+1
+%    pred x            = x-1
+%    enumFrom x        = iterate (+1) x
+%    enumFromTo x y    = takeWhile (<= y) (iterate (+1) x)
+%    enumFromThen x y  = iterate (+(y-x)) x
+%    enumFromThenTo x y z
+%        = takeWhile (<= z) (iterate (+(y-x)) x)
+%
+%  iterate :: (a -> a) -> a -> [a]
+%  iterate f x = x : iterate f (f x)
+%
+%  takeWhile :: (a -> Bool) -> [a]   ->   [a]
+%  takeWhile p []                    =    []
+%  takeWhile p (x:xs) | p x          =    x : takeWhile p xs
+%                     | otherwise    =    []
+%\end{asciihs}
+%\end{frame}
+%
+%\subsection{Anotimpuri}
+%
+%\begin{frame}[fragile]{Anotimpuri}
+%\begin{asciihs}
+%  data Season = Winter | Spring | Summer | Fall
+%
+%  next   :: Season -> Season
+%  next   Winter = Spring
+%  next   Spring = Summer
+%  next   Summer = Fall
+%  next   Fall    = Winter
+%
+%  warm   :: Season -> Bool
+%  warm   Winter = False
+%  warm   Spring = True
+%  warm   Summer = True
+%  warm   Fall    = True
+%\end{asciihs}
+%\end{frame}
+%
+%\begin{frame}[fragile]{Anotimpuri --- Instanțiere manuala pentru Eq, Ord, Show}
+%\vspace{-2ex}
+%\begin{asciihs}
+%  instance   Eq   Seasons   where
+%    Winter   ==   Winter    = True
+%    Spring   ==   Spring    = True
+%    Summer   ==   Summer    = True
+%    Fall     ==   Fall      = True
+%    _        ==   _         = False
+%  instance   Ord Seasons where
+%    Spring   <= Winter = False
+%    Summer   <= Winter = False
+%    Summer   <= Spring = False
+%    Fall     <= Winter = False
+%    Fall     <= Spring = False
+%    Fall     <= Summer = False
+%    _        <= _       = True
+%  instance Show Seasons where
+%    show Winter = "Winter"
+%    show Spring = "Spring"
+%    show Summer = "Summer"
+%    show Fall   = "Fall"
+%\end{asciihs}
+%\end{frame}
+%
+%\begin{frame}[fragile]{Instanță Enum pentru anotimpuri}
+%\begin{asciihs}
+%  instance Enum Seasons where
+%
+%    fromEnum     Winter   =    0
+%    fromEnum     Spring   =    1
+%    fromEnum     Summer   =    2
+%    fromEnum     Fall     =    3
+%
+%    toEnum   0    =   Winter
+%    toEnum   1    =   Spring
+%    toEnum   2    =   Summer
+%    toEnum   3    =   Fall
+%\end{asciihs}
+%\end{frame}
+%
+%\begin{frame}[fragile]{Anotimpuri folosind derivare automată}
+%\begin{asciihs}
+%  data Season = Winter | Spring | Summer | Fall
+%                deriving (Eq, Ord, Show, Enum)
+%
 %  next :: Season -> Season
-%  next x = toEnum ((fromEnum x + 1) ‘mod‘ 4)
+%  next x = toEnum ((fromEnum x + 1) `mod` 4)
 %
 %  warm :: Season -> Bool
-%  warm x = x ‘elem‘ [Spring .. Fall]
+%  warm x = x `elem` [Spring .. Fall]
+%\end{asciihs}
 %
-%  -- [Spring .. Fall] = [Spring, Summer, Fall]
+%\vfill
+%Toate funcțiile pentru clasele derivate sunt generate automat!
+%\end{frame}
+%
+%\begin{frame}[fragile]{}
+%\begin{asciihs}
+%\end{asciihs}
+%\end{frame}
+
+
 %Part VII
 %
 %Shape
