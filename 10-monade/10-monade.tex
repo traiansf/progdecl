@@ -86,10 +86,10 @@ Alternativ, folosind ideea de \structure{continuare}:
 %   return v >>= \x -> m               =   m[x:=v]
 %   m >>= \x -> return x               =   m
 %   (m >>= \x -> n) >>= \y-> o         =   m >>= \x -> (n >>= \y -> o)
-\begin{frame}[fragile]{}
-\begin{asciihs}
-\end{asciihs}
-\end{frame}
+%\begin{frame}[fragile]{}
+%\begin{asciihs}
+%\end{asciihs}
+%\end{frame}
 
 %Laws of Let
 %We know that (>>) and done satisfy the laws of a monoid.
@@ -637,8 +637,8 @@ Exemplu
 \end{asciihs}
 
 \begin{itemize}
-\item mzero reprezintă parserul care eșuează tot timpul
-\item mplus reprezintă combinarea alternativelor de parsare
+\item mzero reprezintă analizorul sintactic care eșuează tot timpul
+\item mplus reprezintă combinarea alternativelor
 \end{itemize}
 
 \end{frame}
@@ -657,7 +657,7 @@ Exemplu
     f []     = []
     f (c:s) = [(c,s)]
 
-  -- Recunoasterea unui caracter cu o proprietate (e.g., isDigit)
+  -- Recunoasterea unui caracter cu o proprietate
   spot :: (Char -> Bool) -> Parser Char
   spot p = Parser f
     where
@@ -805,6 +805,143 @@ e echivalentă cu
   9
 \end{asciihs}
 \end{frame}
+
+
+\section{Evaluare cu efecte laterale}
+
+\subsection{Sintaxă abstractă}
+
+\begin{frame}[fragile]{Lambda calcul cu întregi}
+{Sintaxă}
+\begin{asciihs}
+type Name = String
+data Term
+  = Var Name
+  | Con Int
+  | Add Term Term
+  | Lam Name Term
+  | App Term Term
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]
+{Valori și medii de evaluare}
+\begin{asciihs}
+data Value m
+  = Wrong
+  | Num Int
+  | Fun (Value m -> m (Value m))
+  
+instance Show (Value m) where
+  show Wrong = "<wrong>"
+  show (Num i) = show i
+  show (Fun f) = "<function>"
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Mediul de variabile}
+\begin{asciihs}
+type Environment m = [(Name,Value m)]
+
+lookUp :: Monad m => Name -> Environment m -> m (Value m)
+lookUp _ [] 
+  = return Wrong
+lookUp x ((y,b):e)
+  = if x == y then return b else lookUp x e
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Evaluare}{Variabile și valori}
+\begin{asciihs}
+interp :: Monad m => Term -> Environment m -> m (Value m)
+interp (Var x) e   = lookUp x e
+interp (Con i) e   = return (Num i)
+interp (Lam x v) e = return (Fun (\a -> interp v ((x,a):e)))
+\end{asciihs}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+{Evaluare}{Adunare}
+\begin{asciihs}
+interp (Add u v) e = 
+  do {
+    a <- interp u e;
+    b <- interp v e;
+    add a b
+  }
+
+add :: (Monad m) => Value m -> Value m -> m (Value m)
+add (Num i) (Num j) = return (Num (i+j))
+add _       _       = return Wrong
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Evaluare}{Aplicarea funcțiilor}
+\begin{asciihs}
+interp (App t u) e = 
+  do {
+    f <- interp t e;
+    a <- interp u e;
+    apply f a
+  }
+
+
+apply :: (Monad m) => Value m -> Value m -> m (Value m)
+apply (Fun k) a = k a
+apply _ _ = return Wrong
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Interpretare în monada Identitate}
+\begin{asciihs}
+newtype Identity a = Id a
+instance Monad Identity where
+  return a   = Id a
+  Id a >>= k = k a
+
+instance (Show a) => Show (Identity a) where
+  show (Id a) = show a
+
+evalId :: Term -> String
+evalId t = show ( interp t ([]::Environment Identity) )
+\end{asciihs}
+\begin{itemize}
+\item Obținem interpretorul standard discutat în cursurile trecute
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Interpretare în monada Eroare}
+\begin{asciihs}
+data Error a = Success a | Error String
+  (deriving Show)
+
+instance Monad Error where
+  return a = Success a
+  fail   s = Error s
+  (Success a) >>= k = k a
+  (Error s)   >>= k = Error s
+  
+  
+lookUp x [] = fail ("Unbound variable " ++ x)
+add a b   = fail ("Should be numbers: " ++ show a ++ 
+                                    "," ++ show b)
+add f _   = fail ("Should be function: " ++ show f)
+\end{asciihs}
+\end{frame}
+
+%\begin{frame}[fragile]{Interpretare în monada Stare}
+%\begin{asciihs}
+%data MState state a = MState (state -> (a,state))
+%\end{asciihs}
+%\end{frame}
 
 \end{document}
 
