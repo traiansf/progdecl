@@ -88,7 +88,7 @@ Un endofunctor este un functor de la o categorie la ea însăși.
 \begin{itemize}
 \item duce o mulțime $A$ în $A^S$, mulțimea funcțiilor de la $S$ la $A$
 \item duce $f : A \rightarrow B$ în $f^S : A^S \rightarrow B^S$ dată de 
-$f^S(h) = h \circ f$ pentru orice $h : S \rightarrow A$
+$f^S(h) = f \circ h$ pentru orice $h : S \rightarrow A$
 \end{itemize}
 
 \end{itemize}
@@ -104,11 +104,13 @@ Un constructor de tipuri asociază fiecărul tip un tip nou bazat pe acel tip
 \end{block}
 
 \begin{block}{Exemple}
-\begin{itemize}
-\item \lstinline$Maybe$ asociază unui tip tipul valorilor parțiale de acel tip
-\item \lstinline$[]$ asociază unui tip tipul listelor cu elemente de acel tip
-\item \lstinline$IO$ asociază unui tip tipul computațiilor I/O cu rezultate de acel tip
-\end{itemize}
+\begin{description}
+\item[Maybe] crează tipul rezultatelor parțiale de un tip dat
+\item[{[]}] crează tipul listelor cu elemente de un tip dat
+\item[MyIO] crează tipul computațiilor I/O cu rezultate de un tip dat
+\item[MyRandom] crează tipul computațiilor cu rezultate aleatoare de un tip dat
+\item[Audit] crează tipul computațiilor auditate cu rezultate de un tip dat
+\end{description}
 \end{block}
 
 \begin{itemize}
@@ -130,7 +132,7 @@ class Functor f where
   fmap :: (a -> b) -> f a -> f b
 \end{asciihs}
 \vspace{-1ex}
-Înzestrează un constructor de tipuri cu o modalitate de a asocia funcțiilor între argumente funcții între tipurile construite folsoind acele argumente
+Înzestrează un constructor de tipuri cu o modalitate de a asocia funcțiilor între argumente funcții între tipurile construite folosind acele argumente.
 \end{block}
 
 \begin{block}{Exemplu: Functorul listelor}
@@ -140,9 +142,8 @@ instance Functor [] where
   fmap = map
 \end{asciihs}
 \vspace{-1ex}
-\lstinline$fmap f$ e funcția care aplică f fiecărui element al listei argument
-
 \begin{itemize}
+\item \lstinline$fmap f$ e funcția care aplică f fiecărui element al listei argument
 \item De comparat cu functorul $\mathcal P$ peste $\mathbb{S}et$
 \end{itemize}
 \end{block}
@@ -295,7 +296,7 @@ Employee :: Name -> String -> Employee
 \lstinline$fmap2 :: Functor f => (a -> b -> c) -> (f a -> f b -> f c)$
 \item Deoarece \lstinline$fmap h :: f a -> f (b -> c)$, de unde
 \item \lstinline$fmap h fa :: f (b -> c)$ pentru \lstinline$fa :: f a$
-\item Și nu avem un mecanism de a \structure{aplica} \lstinline$fmap h fa$ unui  \lstinline$fb :: f b$
+\item \alert{Problema:} nu avem un mecanism de a \structure{aplica} \lstinline$fmap h fa$ unui  \lstinline$fb :: f b$
 \end{itemize}
 \end{block}
 \end{frame}
@@ -335,9 +336,8 @@ fmap3 h fa fb fc = h <$> fa <*> fb <*> fc
 \begin{asciihs}
 instance Applicative Maybe where
   pure              = Just
+  Just f <*> m      = f <$> m
   Nothing <*> _     = Nothing
-  _ <*> Nothing     = Nothing
-  Just f <*> Just x = Just (f x)
 \end{asciihs}
 \vspace{-1ex}
 \end{block}
@@ -346,6 +346,7 @@ instance Applicative Maybe where
 \begin{asciihs}
 m_name1, m_name2 :: Maybe Name
 m_name1 = Nothing                 m_name2 = Just "Brent"
+
 m_phone1, m_phone2 :: Maybe String
 m_phone1 = Nothing                m_phone2 = Just "555-1234"
 
@@ -460,31 +461,48 @@ pentru orice săgeată $f : X \rightarrow Y$
 \end{frame}
 
 
-\begin{frame}{Monadă în Haskell}{Proprietăți}
-\begin{description}
-\item[Naturalitate:] \lstinline$fmap f . pure == pure . f$
-și \lstinline$fmap f . join == join . fmap (fmap f)$
-
-pentru orice \lstinline$f :: a -> b$
-
-\item[Asociativitate:] \lstinline$join . fmap join == join . join$
-
-\item[Identitate:] \lstinline$join . fmap pure == join . pure$
-\end{description}
-
-\begin{block}{Bind vs Join}
-\begin{itemize}
-
-\item Bind în funcție de join:
-
- \lstinline"ma >>= k == join $ fmap k ma"
-
-\item Join în funcție de bind:
-
- \lstinline$join mma == mma >>= id$
-
-\end{itemize}
+\begin{frame}[fragile]{Bind vs Join}{Intuiție}
+\begin{block}{Join}
+\begin{asciihs}
+  join :: m (m a) -> m a
+\end{asciihs}
+Counitatea monadei. Am o „cutie cu cutii” cu rezultate de tip a și vreau sa le reîmpachetez într-o singură „cutie” cu rezultate de tip a.
 \end{block}
+
+\begin{block}{Bind}
+\begin{asciihs}
+  >>= :: m a -> (a -> m b) -> m b
+\end{asciihs}
+Continuarea computației în funcție de rezultat.
+Am o „cutie” cu rezultate de tip a și o funcție care produce „cutii” cu rezultate de tip b în funcție de valorile de tip a date, și vreau să creez un nou procedeu de producție: despachetez „cutia” ma; pentru fiecare rezultat obțin  
+o „cutie” mb; reîmpachetez rezultatele într-o singură „cutie”
+\end{block}
+\end{frame}
+%\begin{description}
+%\item[Naturalitate:] \lstinline$fmap f . pure == pure . f$
+%și \lstinline$fmap f . join == join . fmap (fmap f)$
+%
+%pentru orice \lstinline$f :: a -> b$
+%
+%\item[Asociativitate:] \lstinline$join . fmap join == join . join$
+%
+%\item[Identitate:] \lstinline$join . fmap pure == join . pure$
+%\end{description}
+%
+
+\begin{frame}[fragile]{Bind vs Join}{Dependență reciprocă}
+\begin{block}{Bind în funcție de join}
+\begin{asciihs}
+   ma >>= k == join $ fmap k ma
+\end{asciihs}
+\end{block}
+
+\begin{block}{Join în funcție de bind}
+\begin{asciihs}
+   join mma == mma >>= id
+\end{asciihs}
+\end{block}
+
 \end{frame}
 
 \begin{frame}[fragile]{Clasa de tipuri Monad}
@@ -493,6 +511,7 @@ pentru orice \lstinline$f :: a -> b$
 class Applicative m => Monad m where
     (>>=)       :: m a -> (a -> m b) -> m b
 \end{asciihs}
+Haskell preferă bind lui join datorită naturii sale mai computaționale.
 \end{block}
 \begin{block}{Exemplu---Monada Maybe}
 \begin{asciihs}

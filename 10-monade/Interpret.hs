@@ -3,8 +3,15 @@ module Interpret where
 import Control.Monad
 
 type Name = String
+
+type Location = Int
+
 data Term
   = Var Name
+  | Loc Location
+  | Ref Term
+  | Get Term
+  | Set Term Term
   | Con Int
   | Add Term Term
   | Lam Name Term
@@ -14,11 +21,13 @@ data Term
 data Value m
   = Wrong
   | Num Int
+  | Loca Location
   | Fun (Value m -> m (Value m))
   
 instance Show (Value m) where
   show Wrong = "<wrong>"
   show (Num i) = show i
+  show (Loca l) = "<" ++ show l ++ ">"
   show (Fun f) = "<function>"
 
 type Environment m = [(Name,Value m)]
@@ -46,6 +55,7 @@ interp (App t u) e =
     a <- interp u e;
     apply f a
   }
+interp (Ref )
 
 add :: (Monad m) => Value m -> Value m -> m (Value m)
 add (Num i) (Num j) = return (Num (i+j))
@@ -85,3 +95,9 @@ instance Monad Error where
   fail   s = Error s
   (Success a) >>= k = k a
   (Error s)   >>= k = Error s
+
+type Store = Location -> Value
+
+newtype State a = State (Store -> (a,Store))  
+  
+instance Monad   

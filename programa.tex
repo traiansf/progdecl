@@ -1,0 +1,72 @@
+\documentclass[romanian]{article}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage[romanian]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{ae,aecompl}
+\usepackage[factor=700]{microtype}
+
+\PrerenderUnicode{ȘșțȚăĂîÎâÂîÎ}
+\usepackage{txfonts}
+
+%\usepackage{tarticle}
+%\lstset{language=Haskell}
+
+
+\title{\vspace{-10ex}Programare declarativă}
+\author{Programă}
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\vfill
+\paragraph{Programare funcțională de ordinul I}
+\begin{itemize}
+\item Programare declarativă vs. programare imperativă: exemple și discuție.
+\item Funcții de ordinul I; compunere; recursie.
+\item Liste; pattern matching; operații de bază pe liste: transformare, selectare, agregare.
+\end{itemize}
+\paragraph{Programare funcțională cu funcții de ordin înalt}
+\begin{itemize}
+\item Funcții generice de transformare/selectare/agregare a elementelor dintr-o listă: Map, Filter, Fold
+\item Currying; Operatori ca funcții și funcții ca operatori; aplicare parțială a funcțiilor/operatorilor
+\item Funcții anonime și secțiuni
+\end{itemize}
+\paragraph{Tipuri de date algebrice}
+\begin{itemize}
+\item Tipuri de date algebrice: definire, exemple, utilizare.
+\item Operații pe tipuri de date algebrice: parcurgere, transformare, agregare
+\item Sintaxă abstractă; simplificarea și evaluarea expresiilor
+\end{itemize}
+\paragraph{Modularizare}
+\begin{itemize}
+\item Concepte OO realizate folosind modularizare: abstractizare, încapsulare, exportare
+\end{itemize}
+\paragraph{Clase de tipuri}
+\begin{itemize}
+\item Clase de tipuri.  Comparație cu supraîncarcarea din limbaje OO.
+\item Metode implicite. Extinderi de clase; moștenire. 
+\item Clase de tipuri standard: Eq, Ord, Show, tipuri aritmetice 
+\item Generalizarea conceptelor algebrice folosind clase de tipuri: monoid; functor; produse si coproduse
+\end{itemize} 
+\paragraph{Efecte laterale: monade}
+\begin{itemize}
+\item Efecte laterale în limbaje pure. Dualitatea între intenție și acțiune
+\item Monade: definiție și proprietăți
+\item Exemple de monade: I/O; Liste/Nedeterminism; Analiză sintactică
+\end{itemize}
+
+\vfill
+\paragraph{Bibliografie}
+\begin{itemize}
+\item  Learn You a Haskell for Great Good, de Miran Lipova\v{c}a
+
+\url{https://www.haskell.org/tutorial/}
+\item A Gentle Introduction To Haskell, version 98, de Paul Hudak, John Peterson, 
+ Joseph Fasel
+ 
+ \url{http://learnyouahaskell.com/}
+ \item Haskell: The Craft of Functional Programming, Third Edition, de Simon Thompson
+\end{itemize}
+\end{document}
