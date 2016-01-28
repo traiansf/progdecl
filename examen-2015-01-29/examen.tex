@@ -1,0 +1,146 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} \usepackage{fullpage}
+\usepackage{../tdefinition}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+%\lhead{}
+%}
+%\rhead{Page \thepage}
+
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+\pagestyle{empty}
+
+\begin{document}
+
+\begin{center}
+
+\makebox[\textwidth]{Prenumele, numele și grupa: \enspace\hrulefill}
+\vspace{0.1in}
+
+Programare declarativă---Examen scris \hfill  29 ianuarie 2016 \\ \ \\
+
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\begin{questions}
+
+\question[3] 
+\begin{parts}
+\part[1] Scrieți o funcție \lstinline$f :: String -> Bool$ care verifică că fiecare semn de punctuație dintr-un șir de caractere este spațiu.  Un caracter e semn de punctuație dacă nu este literă sau cifră.  Funcția trebuie să întoarcă True pentru șiruri care nu au nici un semn de punctuație.  De exemplu,
+\begin{asciihs}
+  f "Doar doua spatii" == True
+  f "Fara nici o virgula, punct." == False
+  f "Fara gluma!" == False
+  f "Ce @#\$!?" == False
+  f "c1fr313 5i l1t3r313 5unt 0k" == True
+  f "FaraNiciUnSpatiu" == True
+  f "" == True
+\end{asciihs}
+Definiția poate folosi funcții elementare, descrieri de liste și funcții din biblioteci, dar nu recursie.
+\part[1] Scrieți o a doua funcție \lstinline$g :: String -> Bool$ care se comportă ca f, de această dată folosind funcții elementare și recursie, dar fără descrieri de liste sau alte funcții din biblioteci.
+\part[1] Scrieți o a treia funcție \lstinline$h :: String -> Bool$ care se comportă tot ca $f$, dar folosind una sau mai multe din funcțiile:
+\begin{asciihs}
+  map :: (a -> b) -> [a] -> [b]
+  filter :: (a -> Bool) -> [a] -> [a]
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Puteți folosi și funcții elementare, dar nu recursie sau descrieri de liste.
+\end{parts}
+\question[3] 
+\begin{parts}
+\part[1\half] Scrieți o funcție polimorfică \lstinline$p :: a -> [a] -> [a]$ care intercalează un element între elementele unei alte liste. Lista rezultată trebuie să înceapă cu elementul dat, urmat de primul element al listei, urmat de elementul dat, și așa mai departe, terminându-se cu ultimul element al listei urmat iarăși de elementul dat.  Dacă lista e vidă, trebuie să întoarcă lista conținând doar elementul dat.  De exemplu:
+\begin{asciihs}
+  p 'x' "ABCD" == "xAxBxCxDx"
+  p 'a' "XY" == "aXaYa"
+  p '-' "Salut" == "-S-a-l-u-t-"
+  p '-' "" == "-"
+  p 0 [1,2,3,4,5] == [0,1,0,2,0,3,0,4,0,5,0]
+\end{asciihs}
+Definiția poate folosi funcții elementare, descrieri de liste și funcții din biblioteci, dar nu recursie. Puteți folosi pattern-matching pe liste.
+\part[1\half] Scrieți o a doua funcție \lstinline$q :: a -> [a] -> [a]$ care se comportă ca p, de această dată folosind funcții elementare și recursie, dar fără descrieri de liste sau alte funcții din biblioteci.  Puteți defini funcții auxiliare.
+\end{parts}
+\question[3]
+Definim un tip de date pentru a reprezenta o rețea de mulțimi de puncte în plan:
+\begin{asciihs}
+  type Punct = (Int,Int)
+  data Multime = X 
+               | Y 
+               | DX Int Multime 
+               | DY Int Multime 
+               | U Multime Multime
+\end{asciihs}
+Planul este centrat în punctul $(0,0)$.  Prima coordonată a unui punct (coordonata $x$) reprezintă distanța pe orizontală de la origine iar a doua (coordonata $y$) reprezintă distanța pe verticală.  Prin convenție, coordonatele $x$ cresc spre dreapta, în timp ce coordonatele $y$ cresc în sus.  
+
+Constructorul $X$ reprezintă mulțimea punctelor de pe axa $x$, adică punctele care au coordonata $y$ zero:
+$$\cdots (-2,0) (-1,0) (0,0) (1,0) (2,0) \cdots$$
+
+Constructorul $Y$ reprezintă mulțimea punctelor de pe axa $y$, adică punctele care au coordonata $x$ zero:
+$$\cdots (0,-2) (0,-1) (0,0) (0,1) (0,2) \cdots$$
+
+Constructorul \lstinline$DX dx p$, unde $dx$ este un întreg și $p$ e o mulțime de puncte, reprezintă punctele $p$ deplasate la dreapta cu $dx$. De exemplu, \lstinline$DX 2 Y$ are ca rezultat axa $y$ deplasată cu două unități la dreapta:
+$$\cdots (2,-2) (2,-1) (2,0) (2,1) (2,2) \cdots$$
+
+Observație 1:  \lstinline$DX dx X$ și $X$ denotă aceeași mulțime de puncte, deoarece prin deplasarea axei $x$ pe orizontală se obține tot axa $y$.
+
+Observație 2: Un punct $(x,y)$ aparține lui \lstinline$DX dx p$ dacă și numai dacă punctul $(x-dx,y)$ aparține lui $p$.
+
+Constructorul \lstinline$DY dy p$, unde $dy$ este un întreg și $p$ e o mulțime de puncte, reprezintă punctele $p$ deplasate în sus cu $dx$. De exemplu, \lstinline$DY 3 X$ are ca rezultat axa $X$ deplasată cu două unități în sus:
+$$\cdots (-2,3) (-1,3) (0,3) (1,3) (2,3) \cdots$$
+
+Observație 1:  \lstinline$DY dy Y$ și $Y$ denotă aceeași mulțime de puncte, deoarece prin deplasarea axei $y$ pe verticală se obține tot axa $y$.
+
+Observație 2: Un punct $(x,y)$ aparține lui \lstinline$DY dy p$ dacă și numai dacă punctul $(x,y-dy)$ aparține lui $p$.
+
+Constructorul \lstinline$U p q$, unde $p$ și $q$ sunt mulțimi de puncte, reprezintă reuniunea punctelor din $p$ și $q$.  De exemplu,
+\lstinline$U (U X Y) (U (DY 3 X) (DX 2 Y))$
+reprezintă mulțimea de puncte de forma
+
+$\cdots (-2,0) (-1,0) (0,0) (1,0) (2,0) \cdots
+\cdots (0,-2) (0,-1) (0,0) (0,1) (0,2) \cdots$
+
+\hfill$\cdots (-2,3) (-1,3) (0,3) (1,3) (2,3) \cdots
+\cdots (2,-2) (2,-1) (2,0) (2,1) (2,2) \cdots
+$
+\newpage
+Cerințe:
+\begin{parts}
+\part[1\half] Scrieți o funcție \lstinline$apartine :: Punct -> Multime -> Bool$ care determină dacă un punct aparține unei mulțimi de puncte date.  De exemplu:
+\begin{asciihs}
+  apartine (3,0) X == True
+  apartine (0,1) Y == True
+  apartine (3,3) (DY 3 X) == True
+  apartine (2,1) (DX 2 Y) == True
+  apartine (3,0) (U X Y) == True
+  apartine (0,1) (U X Y) == True
+  apartine (3,3) (U (DY 3 X) (DX 2 Y)) == True
+  apartine (2,1) (U (DY 3 X) (DX 2 Y)) == True
+  apartine (3,0) (U (U X Y) (U (DX 2 Y) (DY 3 X))) == True
+  apartine (0,1) (U (U X Y) (U (DX 2 Y) (DY 3 X))) == True
+  apartine (3,3) (U (U X Y) (U (DX 2 Y) (DY 3 X))) == True
+  apartine (2,1) (U (U X Y) (U (DX 2 Y) (DY 3 X))) == True
+  apartine (1,1) X == False
+  apartine (1,1) Y == False
+  apartine (1,1) (DY 3 X) == False
+  apartine (1,1) (DX 2 Y) == False
+  apartine (1,1) (U X Y) == False
+  apartine (1,1) (U X Y) == False
+  apartine (1,1) (U (DY 3 X) (DX 2 Y)) == False
+  apartine (1,1) (U (DY 3 X) (DX 2 Y)) == False
+  apartine (1,1) (U (U X Y) (U (DX 2 Y) (DY 3 X))) == False
+\end{asciihs}
+\part[1\half] Scrieți o funcție \lstinline$nrAxe :: Points -> Int$ care numără de câte ori apare X sau Y în descrierea unei mulțimi de puncte. Fiecare axă trebuie numărată câte o dată pentru fiecare apariție a sa. De exemplu:
+\begin{asciihs}
+  nrAxe X == 1
+  nrAxe Y == 1
+  nrAxe (U X Y) == 2
+  nrAxe (U (DY 3 X) (DX 2 Y)) == 2
+  nrAxe (U (U X Y) (U (DX 2 Y) (DY 3 X))) == 4
+  nrAxe (U (U X Y) X) == 3 
+\end{asciihs}
+\end{parts}
+\end{questions}
+Se acordă un punct din oficiu.
+\end{document}
