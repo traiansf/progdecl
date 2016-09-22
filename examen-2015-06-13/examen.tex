@@ -1,0 +1,110 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} 
+\usepackage{fullpage}
+\usepackage{../tdefinition}
+\pagestyle{empty}
+%\header{Prenumele, numele și grupa: \enspace\hrulefill}{}{Subiect \thequestion}
+\extrawidth{0.5in}
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+
+\begin{document}
+
+\begin{center}
+Programare declarativă---Examen scris \hfill  13 iunie 2016
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\begin{questions}
+
+\question[6] 
+Recursivitate, descrieri de liste, map/filter/fold
+\begin{parts}
+\part[2] 
+Să se scrie o funcție care dată fiind o listă de elemente de tip a și un predicat (funcție care ia elemente de tip a și întoarce o valoare de adevăr) întoarce o valoare opțională (Maybe) reprezentând primul element din listă care satisface predicatul dat.
+\begin{asciihs}
+  getFirst :: [a] -> (a -> Bool) -> Maybe a
+  getFirst [1,3,2,5,7] even = Just 2
+  getFirst [1,3,5,7] even = Nothing
+  getFirst "0123456789abcdef" isLetter = Just 'a'
+\end{asciihs}
+
+Definiția poate folosi funcții elementare și recursie, dar nu descrieri de liste sau alte funcții din biblioteci.
+\part[2]
+Să se definească lista tuturor elementelor șirului recursiv definit de $a_0 = 1$, $a_1 = 2$, $a_{n+2} = a_{n+1} + 2*a_n + 1$.
+\begin{asciihs}
+  str :: [Integer]
+  take 10 str = [1,2,5,10,21,42,85,170,341,682]
+  str !! 100 = 1690200800304305868662270940501 
+\end{asciihs}
+Definiția poate folosi funcții elementare, descrieri de liste și funcții din biblioteci (e.g., zip).
+
+\part[2] Să se scrie o funcție care primește ca parametru un șir de caractere și afișează valoarea corespunzătoare acestui șir obținută adunând valorile corespunzătoare literelor care au un echivalent în sistemul de numeratie roman.
+Observații: (1) Nu se face distincție între litere mari și mici; (2) litera 'u'	 se identifica cu 'v' și litera 'j' se identifică cu 'i'; (3) I - 1, V - 2, X - 10, L - 50, C - 100, D - 500, M - 1000
+\begin{asciihs}
+  romanSum :: String -> Int
+  romanSum "Marcus Ulpius Traianus" = 1172
+  romanSum "Lucius Domitius Ahenobarbus" = 1673
+  romanSum "Gaius Julius Caesar" = 167
+\end{asciihs}
+Definitia poate folosi una sau mai multe din funcțiile:
+\begin{asciihs}
+  map :: (a -> b) -> [a] -> [b]
+  filter :: (a -> Bool) -> [a] -> [a]
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Puteți folosi și funcții elementare, dar nu recursie, descrieri de liste sau alte funcții din biblioteci.
+\end{parts}
+\newpage
+\question[3] 
+Introducem un tip de date ce reprezinta o expresie booleana formată din literali / variabile (Lit), negație (Not), conjuncție (And), disjuncție (Or) și implicație (:->:), in care conjuncțiile si disjuncțiile au un număr arbitrar de termeni. 
+\begin{asciihs}
+data Exp = Lit String
+         | Not Exp
+         | And [Exp]
+         | Or [Exp]
+         | Exp :->: Exp
+  deriving (Show)
+\end{asciihs}
+
+Un atom este fie un literal (Lit), fie negația unui literal. O expresie este în formă normală disjunctivă dacă este o disjuncție de conjuncții de atomi.
+
+Să se scrie o funcție care dată fiind o expresie are ca rezultat forma normală disjunctivă a acelei expresii.
+
+\begin{asciihs}
+   dnf :: Exp -> Exp
+   dnf ((Lit "a" :->: Lit "b") :->: Lit "c")
+     = Or [And [Lit "a",Not (Lit "b")],And [Lit "c"]]
+   dnf (Lit "a" :->: (Lit "b" :->: Lit "c"))
+     = Or [And [Not (Lit "b")],And [Lit "c"],And [Not (Lit "a")]]
+\end{asciihs}
+
+Indicație---puteți folosi următoarele identități:
+\begin{itemize}
+\item $a \rightarrow b \equiv \neg a \vee b$
+\item $\neg \neg a = a$
+\item $\neg\bigwedge (a_1,\ldots,a_n) = \bigvee(\neg a_1,\ldots,\neg a_n)$
+\item $\neg\bigvee (a_1,\ldots,a_n) = \bigwedge(\neg a_1,\ldots,\neg a_n)$
+\item $\bigwedge{\left(a_1,\ldots,a_i,\bigwedge (b_1,\ldots,b_m),a_{i+1},\ldots,a_n\right)}
+= \bigwedge (a_1,\ldots,a_n,b_1,\ldots,b_m)$
+\item $\bigvee{\left(a_1,\ldots,a_i,\bigvee (b_1,\ldots,b_m),a_{i+1},\ldots,a_n\right)}
+= \bigvee (a_1,\ldots,a_n,b_1,\ldots,b_m)$
+\item $\bigwedge{\left(a_1,\ldots,a_i,\bigvee (b_1,\ldots,b_m),a_{i+1},\ldots,a_n\right)}
+= \bigvee{\left(\bigwedge(b_1,a_1,\ldots,a_n),\ldots,\bigwedge(b_m,\ldots,a_n)\right)}$
+\end{itemize}
+Indicatie 2 --- Puteti folosi funcția getFirst de la Subiectul 1 pentru a căuta o expresie And sau Or într-o listă de expresii.
+
+\end{questions}
+Se acordă un punct din oficiu.
+\end{document}
+
+Să se scrie o funcție care dată fiind o listă de numere întregi calculează al doilea cel mai mic număr din listă.  Deoarece e posibil ca rezultatul să nu poată fi calculat, codomeniul funcției va fi de tip Opțiune (Maybe).
+\begin{asciihs}
+  second :: [Int] -> Maybe Int 
+  second [3,2,5,1,6,8,4,6] = Just 2
+  second [3,2,5,1,6,0,8,4,6] = Just 1
+  second [1, 1] = Just 1
+  second [0] = Nothing
+\end{asciihs}

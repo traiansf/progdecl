@@ -1,0 +1,134 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} 
+\usepackage{fullpage}
+\usepackage{../tdefinition}
+\pagestyle{empty}
+%\header{Prenumele, numele și grupa: \enspace\hrulefill}{}{Subiect \thequestion}
+\extrawidth{0.5in}
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+
+\begin{document}
+
+\begin{center}
+Programare declarativă---Examen scris \hfill  13 februarie 2016
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+
+\noindent\textbf{Atenție:} Tratați fiecare subiect pe câte o foaie separată!
+
+\begin{questions}
+
+\question[5] 
+Recursivitate, descrieri de liste, map/filter/fold
+\begin{parts}
+\part[2] 
+Să se scrie o funcție care pentru o listă de elemente oarecare și un element n inserează n înaintea fiecărui element al listei. Dacă lista e goală rezultatul va fi lista formată din elementul n.
+\begin{asciihs}
+  f :: a -> [a] -> [a] 
+  f 'x' "ABCD" = "xAxBxCxD" 
+  f 'a' "XY" = "aXaY" 
+  f '-' "Hello" = "-H-e-l-l-o" 
+  f '-' "" = "-" 
+  f 0 [1,2,3,4,5] = [0,1,0,2,0,3,0,4,0,5] 
+\end{asciihs}
+Definiția poate folosi funcții elementare și recursie, dar nu descrieri de liste sau alte funcții din biblioteci.
+\part[2]
+Să se scrie o funcție care pentru o listă de numere întregi și un număr întreg strict pozitiv n determină cel mai mare element al listei cuprins între 0 și n. În cazul în care lista este goală, nu sunt elemente din intervalul [0,n] sau n  nu este strict pozitiv funcția va returna 0.
+\begin{asciihs}
+  g :: [Int] -> Int -> Int
+  g [40,30,50,70,60] 100 = 70 
+  g [-10,20,80,110] 100 = 80 
+  g [-10,110] 100 = 0 
+  g [] 100 = 0
+  g [-10,20] -100 = 0 
+\end{asciihs}
+Definiția poate folosi funcții elementare, descrieri de liste și funcții din biblioteci (e.g., zip), dar nu recursie.
+
+\part[1] Să se scrie o funcție, care primește ca parametru o listă de numere întregi și verifică dacă toate elementele din listă care se află în intervalul [-10,10] sunt divizibile cu 3.
+\begin{asciihs}
+  h :: [Int] -> Bool
+  h[2, 5, 12, -2, 6, -9] = False
+  h[6,-13, -9, 3, -3, 14] = True
+  h[-14, 23] = True
+\end{asciihs}
+Definitia poate folosi una sau mai multe din funcțiile:
+\begin{asciihs}
+  map :: (a -> b) -> [a] -> [b]
+  filter :: (a -> Bool) -> [a] -> [a]
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Puteți folosi și funcții elementare, dar nu recursie, descrieri de liste sau alte funcții din biblioteci.
+\end{parts}
+\newpage
+\noindent\textbf{Atenție:} Tratați fiecare subiect pe câte o foaie separată!
+\question[2] 
+Introducem un tip de date ce reprezinta o colectie de puncte (o tabela). 
+\begin{asciihs}
+type Point =(Int, Int)
+
+data Points = Rectangle Point Point
+              Union Points Points
+              Difference Points	Points 
+\end{asciihs}
+			  
+			  
+Tabela incepe cu punctul (0,0) stanga jos. 
+Constructorul Rectangle selecteaza toate punctele dintr-o forma rectangulara.
+De pilda, Rectangle (0,0) (2,1) da colturile din stanga jos si dreapta sus ale unui dreptunghi si include punctele (0,0) ; (1,0) ;(2,0) ; (0,1) ; (1,1) ; (2,1)
+
+Union combina doua colectii de puncte iar Difference contine acele puncte care sunt in prima colectie dar nu sunt in a doua. 			  
+
+\begin{parts}
+\part[1] Scrieti o functie \lstinline$perimeter$ care calculeaza perimetrul celui mai mic dreptunghi care cuprinde complet o colectie de puncte.
+
+\begin{asciihs}
+   perimeter :: Points -> Int 
+\end{asciihs}
+
+\part[1] Scrieti o functie distance care calculeaza distanta dintre doua colectii de puncte ca reprezentand distanta intre coltul dreapta-sus al dreptunghiului minimal care cuprinde prima colectie si coltul stanga-jos al dreptunghiului minimal care cuprinde cea de-a doua colectie.
+
+\begin{asciihs}
+  distance :: Points -> Points -> Int
+\end{asciihs}
+
+\end{parts}
+\noindent\textbf{Atenție:} Tratați fiecare subiect pe câte o foaie separată!
+
+\question[2]
+Se dă următoarea definiție:
+
+\begin{asciihs}
+  instance Functor ((->) r) where
+    fmap f g = (\x -> f (g x))
+
+  instance Monad ((->) r) where
+    return x = \_ -> x
+    h >>= f = \w -> f (h w) w
+\end{asciihs}
+
+\textbf{Cerințe:}
+\begin{parts}
+\part[1] Să se verifice dacă fmap satisface axiomele de functor:
+\begin{asciihs}
+  fmap id  ==  id
+  fmap (f . g)  ==  fmap f . fmap g
+\end{asciihs}
+\part[\half] Să se verifice dacă return și \lstinline$>>=$ satisfac axiomele monadei:
+\begin{asciihs}
+  return a >>= f == f a
+  m >>= return == m
+  (m >>= f) >>= g == m >>= (\x -> f x >>= g)
+\end{asciihs}
+\part[\half] Să se verifice dacă instanța de functor e compatibilă cu cea de monadă:
+\begin{asciihs}
+  fmap f ma  =  ma >>= return . f
+\end{asciihs}
+\noindent\textbf{Atenție:} Tratați fiecare subiect pe câte o foaie separată!
+\end{parts}
+\end{questions}
+Se acordă un punct din oficiu.
+\end{document}

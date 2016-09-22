@@ -1,0 +1,260 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} 
+\usepackage{../tdefinition}
+\pagestyle{empty}
+%\header{Prenumele, numele și grupa: \enspace\hrulefill}{}{Subiect \thequestion}
+\extrawidth{0.5in}
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+
+\begin{document}
+
+\begin{center}
+Programare declarativă---Examen scris \hfill  13 februarie 2016
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\newenvironment{solutie}{\par%\hspace*{-9em}
+\begin{minipage}{.9\textwidth}
+\hrulefill {\bf Rezolvare posibilă} \hrulefill}{\hrulefill\end{minipage}}
+
+
+\begin{questions}
+
+\question[3] 
+\begin{parts}
+\part[1] 
+Să se scrie o funcție \lstinline$sumCifre :: Int -> Int -> Int$ care are ca  parametri numere naturale și calculează suma cifrelor din primul parametru ce au aceași paritate cu al doilea parametru. Două numere au aceași paritate dacă sunt ambele pare sau ambele impare. De exemplu,
+\begin{asciihs}
+  sumCifre 1524 18 == 2 + 4  == 6
+  sumCifre 1243 5 == 1 + 3 == 4
+  sumCifre 13 2  == 0
+\end{asciihs}
+Definiția poate folosi funcții elementare și recursie, dar nu descrieri de liste sau alte funcții din biblioteci.
+\begin{solutie}
+\begin{asciihs}
+  sumCifre 0 p = 0
+  sumCifre n x
+    | even c == even x = c + sumCifre m' n
+    | otherwise        = sumCifre m' n
+    where
+      (m',c) = m `divMod` 10
+\end{asciihs}
+\end{solutie}
+\part[1] Să se scrie o funcție \lstinline$modificaElem :: [Int] -> [Int]$ care primește ca parametru o listă de numere întregi și înlocuiește fiecare element pozitiv cu suma cifrelor sale care au aceeași paritate cu poziția elementului.  Observație: prima poziție din vector e 0.  De exemplu,
+\begin{asciihs}
+  modificaElem [1234, 5645, 34, 56, 111, 1232] = [6, 10, 4, 5, 0, 4]
+  modificaElem [] = []
+\end{asciihs}
+Definiția poate folosi funcții elementare, funcția sumCifre, descrieri de liste și funcții din biblioteci (e.g., sum, zip), dar nu recursie.
+\begin{solutie}
+\begin{asciihs}
+  modificaElem l = [sumCifre n i | (n,i) <- zip l [0..]]
+\end{asciihs}
+\end{solutie}
+\newpage 
+\part[1] 
+Să se scrie o funcție \lstinline$verificaSiruri :: [String] -> String -> Bool$ care primește ca parametru o listă de șiruri de caractere și un cuvânt și determină dacă toate șirurile din listă care au ca prefix cuvântul dat, au lungime pară și se termină cu o vocală ('a','e','i','o','u').
+\begin{asciihs}
+  verificaSiruri ["ana", "avea", "mere"] "a" = False
+  verificaSiruri ["abba", "arde", "abia", "abra", "abcdee"] "ab" == True
+  verificaSiruri ["abba", "arde", "abia", "abra", "abcde"] "ab" == False
+  verificaSiruri ["abba", "arde", "abia", "abra", "abcd"] "ab" == False
+\end{asciihs}
+Definitia poate folosi folosi una sau mai multe din funcțiile:
+\begin{asciihs}
+  map :: (a -> b) -> [a] -> [b]
+  filter :: (a -> Bool) -> [a] -> [a]
+  foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Puteți folosi și funcții elementare, funcțiile length, last și isPrefixOf,  dar nu recursie, descrieri de liste sau alte funcții din biblioteci.
+\begin{solutie}
+\begin{asciihs}
+  verificaSiruri l s = foldr (&&) True $ map check $ filter (isPrefixOf s)  l
+    where
+      check s = even (length s) && (last s `elem` "aeiou")
+\end{asciihs}
+\end{solutie}
+\end{parts}
+
+\question[3] 
+Se consideră următorul tip algebric de date:
+\begin{asciihs}
+  data Expr = Const Int
+            | Neg Expr
+            | Expr :+: Expr
+            | Expr :*: Expr
+            
+  data Op = NEG | PLUS | TIMES
+
+  data Atom = AConst Int | AOp Op
+
+  type Polish = [Atom]
+\end{asciihs}
+
+\textbf{Cerințe:}
+\begin{parts}
+\part[1\half] 
+Să se scrie o funcție \lstinline$fp :: Expr -> Polish$ care asociază unei expresii aritmetice date scrierea ei în forma poloneză: o listă de Atomi, obținută prin parcurgerea în preordine a arborelui asociat expresiei (operațiile precedând reprezentărilor operanzilor).
+Exemple:
+\begin{itemize}
+\item forma poloneză a expresiei $5 * 3$ este $*\, 5\, 3$ \\
+  \lstinline$fp (Const 5 :*: Const 3) = [AOp TIMES, AConst 5, AConst 3]$
+
+\item forma poloneză a expresiei $−(7 * 3)$ este  $-\, *\, 7\, 3$ \\
+  \lstinline$ fp (Neg (Const 7 :*: Const 3)) = [AOp Neg, AOp TIMES, AConst 7, AConst 3]$
+
+\item forma poloneză a expresiei $(5 + −3) * 17$ este $*\,+\,5\,-\,3\, 17$\\
+  \lstinline$fp ((Const 5 :+: Neg (Const 3)) :*: Const 17)$\\
+  \lstinline$  = [AOp TIMES, AOp PLUS, AConst 5, AOp NEG, AConst 3, AConst 17]$
+
+\item forma poloneză a expresiei $(15 + (7 * (2 + 1))) * 3$ este $*\, +\, 15\, *\, 7\, +\, 2\, 1\, 3$\\
+  \lstinline$fp ((Const 15 :+: (Const 7 :*: (Const 2 :+: Const 1))) :*: Const 3)$\\
+  \lstinline$  = [AOp TIMES, AOp PLUS, AConst 15, AOp TIMES, AConst 7,$\\ 
+  \lstinline$     AOp PLUS, AConst 2, AConst 1, AConst 3]$
+
+\end{itemize}
+\begin{solutie}
+\begin{asciihs}
+  fp (Const c) = [AConst c]
+  fp (Neg e) = AOp NEG : fp e
+  fp (e1 :+: e2) = AOp PLUS : (fp e1 ++ fp e2)
+  fp (e1 :*: e2) = AOp TIMES : (fp e1 ++ fp e2)
+\end{asciihs}
+\end{solutie}
+\part[1\half] Definiți o funcție \lstinline$rfp :: Polish -> Maybe Expr$ 
+astfel încât \lstinline$rfp . fp = Just . id$
+\begin{solutie}
+
+Instanțiind \lstinline$rfp . fp = Just . id$ pentru un o expresie $e$ oarecare, obținem \lstinline$rfp (fp  e) = Just (id e) == Just e$.  Așadar, \lstinline$rfp$ este „inversa” funcției \lstinline$fp$.
+\begin{asciihs}
+  extractExp :: Polish -> Maybe (Expr, Polish)
+  extractExp (AConst i:p) = Just (Const i, p)
+  extractExp (AOp NEG:p) 
+    | Just (e,p') <- extractExp p = Just (Neg e, p')
+  extractExp (AOp o:p) 
+    | Just (e,p') <- extractExp p
+    , Just (e',p'') <- extractExp p' 
+    = Just (app o e e', p'')
+    where
+      app PLUS e e' = e :+: e'
+      app TIMES e e' = e :*: e'
+  extractExp _ = Nothing
+  
+
+  rfp :: Polish -> Maybe Expr
+  rfp p 
+    | Just (e,[]) <- extractExp p = Just e
+    | otherwise                   = Just Nothing
+\end{asciihs}
+\end{solutie}
+\end{parts}
+\question[3]
+Se dă următoarea definiție:
+
+\begin{asciihs}
+  newtype MState s a = MState (s -> (a, s))
+
+  apply :: MState s a -> s -> (a,s)
+  apply (MState m) s = m s
+
+  instance Functor (MState s) where
+    fmap f ma = MState $ \s -> let (a,sa) = apply ma s in (f a, sa)
+
+  instance Monad (MState s) where
+    return a = MState $ \s -> (a,s)
+    ma >>= k = MState $ \ s -> let (a,s') = apply ma s in apply (k a) s'
+\end{asciihs}
+
+\begin{solutie}
+
+Observație 1:  \lstinline$MState f == MState g$ dacă și numai dacă $f == g$
+
+Observație 2: \lstinline$f::s->a == g::s->a$ dacă și numai dacă, pentru orice $s::s$, $f s == g s$.  
+
+Corolar:  \lstinline$m1::(MState s a) == m2::(MState s a)$ dacă și numai dacă, pentru orice $s::s$, \lstinline$apply m1 s == apply m2 s$.
+
+\end{solutie}
+
+\textbf{Cerințe:}
+\begin{parts}
+\part[1] Să se verifice dacă fmap satisface axiomele de functor:
+\begin{asciihs}
+  fmap id  ==  id
+  fmap (f . g)  ==  fmap f . fmap g
+\end{asciihs}
+\begin{solutie}
+
+\lstinline$fmap id == id$ dnd \lstinline$fmap id m == id m$ pentru orice 
+\lstinline$m::MState s a$, dnd \lstinline$apply (fmap id m) s == apply (id m) s$ 
+pentru orice \lstinline$m::MState s a$ și \lstinline$s::s$.  
+Avem \lstinline $apply (id m) s == apply m s$ deoarece id este identitatea.  
+Acum, \lstinline|apply (fmap id m) s == apply (MState $ \s -> let (a,sa) = apply m s in (id a, sa)) s|
+\lstinline| == let (a,sa) = apply m s in (id a, sa) == let (a,sa) = apply m s in (a, sa)|
+\lstinline| == apply m s|
+
+Asemănător, pentru a doua identitate,
+
+\lstinline|apply (fmap (f.g) m) s == let (a, sa) = apply m s in (f (g a), sa)|
+Presupunând că \lstinline$apply m s == (a,sa)$, rezultă că 
+\lstinline|apply (fmap (f.g) m) s == (f (g a), sa)|.
+
+Acum, \lstinline|apply (fmap f (fmap g m)) s == let (b,sb) = apply (fmap g m) s in (f b, sb)|
+\lstinline| == let (b,sb) = let (a,sa) = apply m s in (g a, sa) in (f b, sb)|
+\lstinline| == let (b,sb) = (g a, sa) in (f b, sb) == (f (g a), sa)|
+
+\end{solutie}
+
+
+\part[1\half] Să se verifice dacă return și \lstinline$>>=$ satisfac axiomele monadei:
+\begin{asciihs}
+  return a >>= f == f a
+  m >>= return == m
+  (m >>= f) >>= g == m >>= (\x -> f x >>= g)
+\end{asciihs}
+\begin{solutie}
+
+Din definiție, rezultă că \lstinline|apply (return a) s == (a,s)|
+
+\textbf{Prima identitate.}
+
+\lstinline|apply (return a >>= f) s == let (b, s') = apply (return a) s in apply (f b) s'|
+\lstinline| == let (b, s') = (a,s) in apply (f b) s' = apply (f a) s|
+
+\textbf{A doua identitate.}
+
+\lstinline|apply (m >>= return) s == let (a,s') = apply m s in apply (return a) s'|
+\lstinline| == let (a,s') = apply m s in (a,s') == apply m s|
+
+\textbf{A treia identitate.} Fie $a$, $s'$ astfel încât \lstinline$apply m s == (a,s')$. Atunci:
+
+
+\lstinline|apply ((m >>= f) >>= g) s == let (b, s'') = apply (m >>= f) s in apply (g b) s''|
+\lstinline| == let (b,s'') = let (a,s') = apply m s in apply (f a) s' in apply (g b) s''|
+\lstinline| == let (b,s'') = apply (f a) s' in apply (g b) s''|
+
+\lstinline|apply ( m >>= (\ x -> f x >>= g)) s |
+\lstinline| == let (a, s') = apply m s in apply (f a >>= g) s' |
+\lstinline| == let (a,s') = apply m s in let (b,s'') = apply (f a) s' in apply (g b) s''|
+\lstinline| == let (b,s'') = apply (f a) s' in apply (g b) s''|
+
+\end{solutie}
+\part[\half] Să se verifice dacă instanța de functor e compatibilă cu cea de monadă:
+\begin{asciihs}
+  fmap f ma  =  ma >>= return . f
+\end{asciihs}
+\begin{solutie}
+
+\lstinline|apply (fmap f ma) s == let (a,sa) = apply ma s in (f a, sa)|
+
+\lstinline|apply (ma >>= return . f) s == let (a,sa) = apply ma s in apply (return . f $ a) sa|
+\lstinline| == let (a,sa) = apply ma s in apply (return (f a)) sa|
+\lstinline| == let (a,sa) = apply ma s in (f a, sa)|
+
+\end{solutie}
+\end{parts}
+\end{questions}
+Se acordă un punct din oficiu.
+\end{document}

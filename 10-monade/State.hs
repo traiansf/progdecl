@@ -1,4 +1,5 @@
 module State where
+{-
 type Location = String
 type Value = Int
 type State = Location -> Maybe Value
@@ -11,20 +12,24 @@ set s l v = \ loc -> if loc == l then Just v else s loc
 
 empty :: State
 empty _ = Nothing
+-}
 
-newtype MState a = MState (State -> (a, State))
-
-apply :: MState a -> State -> (a,State)
-apply (MState m) s = m s
-
-instance Functor MState where
-  fmap f ma = \s -> let (a,sa) = ma s in 
-
+{-
 instance Applicative MState where
   pure = return
-  (<*>) = undefined
+  mf (<*>) ma = mf >>= \ f -> ma >>= \ a -> return (f a)
+-}
 
-instance Monad MState where
+
+newtype MState s a = MState (s -> (a, s))
+
+apply :: MState s a -> s -> (a,s)
+apply (MState m) s = m s
+
+instance Functor (MState s) where
+  fmap f ma = MState $ \s -> let (a,sa) = apply ma s in (f a, sa)
+
+instance Monad (MState s) where
   return a = MState $ \s -> (a,s)
-  m >>= k = MState $ \ s -> let (a,sm) = apply m s in apply (k a) sm
+  ma >>= k = MState $ \ s -> let (a,s') = apply ma s in apply (k a) s'
   
