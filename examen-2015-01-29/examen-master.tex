@@ -1,0 +1,378 @@
+\documentclass[addpoints,12pt,a4paper,answers]{exam}
+%
+\usepackage[none]{hyphenat} \usepackage{fullpage}
+\usepackage{../tdefinition}
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}
+%\lhead{}
+%}
+%\rhead{Page \thepage}
+
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+\pagestyle{empty}
+
+
+\newcommand{\getHeight}[1]{%
+%\newdimen\height
+%\setbox0=\vbox{#1}
+%\height=\ht0 \advance\height by \dp0
+%\vspace*{1.1\height}
+%#1%
+}
+
+\newenvironment{solutie}{\par\hspace*{-9em}\begin{minipage}{.98\paperwidth}
+\hrulefill {\bf Rezolvare} \hrulefill}{\hrulefill\end{minipage}}
+
+\begin{document}
+
+\begin{center}
+
+%\makebox[\textwidth]{Prenumele, numele și grupa: \enspace\hrulefill}
+%\vspace{0.1in}
+
+Programare declarativă---Examen \hfill  29 ianuarie 2016 \\ \ \\
+
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\begin{questions}
+\question[2] {\bf  IMP+REPEAT. }
+Adăugați la limbajul IMP instrucțiunea $\terminal{repeat} e \terminal{until} c$ care ia ca argument o instrucțiune $e$ și o expresie booleană $c$, cu semantica uzuală: se execută $e$, apoi se evaluează expresia $c$ la o valoare $b$; dacă  $b$ e $\Strue$, atunci rezultatul e instrucțiunea vidă; dacă $b$ e $\Sfalse$, atunci se revine la începutul instrucțiunii repetitive.
+\begin{parts}
+\part[\half] {\bf Semantică. } Scrieți regulile de deducție pentru execuția programelor folosind $\terminal{repeat}\_\terminal{until}\_$ 
+\getHeight{
+\begin{solutie}
+(0,25p/regulă)
+
+\[
+\reg[SwitchS]{
+\Ss
+{\c{\terminal{switch}(e)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\},s}}
+{\c{\terminal{switch}(e')\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\},s'}}
+}{
+\Ss
+{\c{e,s}}
+{\c{e',s'}}
+}{}
+\]
+\[
+\reg[Switch1]{
+\Ss
+{\c{\terminal{switch}(v)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\},s}}
+{\c{e_1,s}}}{}{v=v_1}
+\]
+\[
+\reg[Switch2]{
+\Ss
+{\c{\terminal{switch}(v)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\},s}}
+{\c{e_2,s}}}{}{v\neq v_1, v = v_2}
+\]
+\[
+\reg[Switch3]{
+\Ss
+{\c{\terminal{switch}(v)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\},s}}
+{\c{d,s}}}{}{v\neq v_1, v \neq v_2}
+\]
+\end{solutie}
+}
+\part[\half] {\bf Tipuri. } Scrieți regula de tipuri pentru $\terminal{repeat}\_\terminal{until}\_$
+\getHeight{
+\begin{solutie}
+(0,2p/câte au tipul la fel ca e sau câte au tipul la fel ca rezultatul)
+
+\[\reg[tSwitch]{\tjud{\terminal{switch}(e)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\}}{T'}}{\tjud{e}{T}\si\tjud{v_1}{T}\si\tjud{e_1}{T'}\si\tjud{v_2}{T}\si\tjud{e_2}{T'}\si\tjud{d}{T'}}{}\]
+\end{solutie}
+}
+\part[1] {\bf Siguranță. } Arătați că sistemul de tranziție IMP+REPEAT are proprietatea de conservare a tipului.
+\getHeight{
+\begin{solutie}
+
+Presupun proprietatea e adevărată pentru toate premizele regulii {\sc tSwitch} și o demonstrez pentru concluzia ei:
+
+(0,2p) Mai întâi, $\terminal{switch}(e)\{\terminal{case} v_1: e_1; \terminal{case} v_2: e_2; \terminal{default:} d\}$ nu este o valoare.  Fie $s$  astfel încât $\Dom(\Gamma)\subseteq \Dom s$.  
+
+(0,6)Dacă $e$ este valoare: dacă $e=v_1$ atunci aplicăm regula {\sc Switch1}; altfel, dacă $e=v_2$ aplicăm regula {\sc Switch2}; alftel aplicăm regula {\sc Switch3}.
+
+(0,2)Dacă $e$ nu este valoare, din ipoteza de inducție, există $e'$,$s'$ astfel încât
+$\Ss{\c{e,s}}{\c{e',s'}}$.  Putem deci aplica regula {\sc SwitchS}.
+
+\end{solutie}
+}
+\end{parts}
+
+\question[3\half] {\bf Funcții}
+Se dă expresia $e$
+\begin{asciiml}
+let x = let x = (fun (x:bool) -> y x) x
+        in (fun (y:int) -> y <= x) (let rec y : int = x + y in x)
+in y x
+\end{asciiml}
+\begin{parts}
+\part[1\half] {\bf Variabile. } Subliniați aparițiile libere și indicați legătura fiecărei apariții legate printr-o săgeată către parametrul care o leagă
+
+\part[2] \label{tipFn}{\bf Tipuri. } Demonstrați că 
+\[x:{\Sbool},y:{\Sbool \rightarrow \Sint} \vdash e : {\Sint}\]
+\getHeight{
+\begin{solutie}
+(0,15p/ prima aplicare a unei reguli;  pentru fiecare regula din primele 4 nivele, afara de al doilea Fun -> 0,1p)
+\[
+\reg[tLet]{
+\tjud[]{\Slet x = {\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1} \Sin {\Sif (x\; 3) \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse x}}{?}
+}{
+\tjud[]{\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1}{{\Sint}\rightarrow{\Sbool}}
+\si 
+\tjud[x:{\Sint}\rightarrow{\Sbool}]{\Sif (x\; 3) \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse x}{?}
+}{}
+\]
+
+\[
+\reg[tFun]{
+\tjud[]{\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1}{{\Sint}\rightarrow{\Sbool}}
+}{
+\reg[t$\leq$]{
+\tjud[x:{\Sint}]{x \terminal{<=} 1}{\Sbool}
+}{
+\reg[tVar]{
+\tjud[x:{\Sint}]{x}{\Sint}
+}{\done}{}
+\si
+\reg[tInt]{
+\tjud[x:{\Sint}]{1}{\Sint}
+}{\done}{}
+}{}
+}{}
+\]
+
+Fie $\Gamma=x:{\Sint}\rightarrow{\Sbool}$
+\[
+\reg[tIf]{
+\tjud{\Sif (x\; 3) \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse x}{?}
+}{
+\tjud{x\; 3}{\Sbool}
+\si 
+\reg[tFun]{
+\tjud{\Sfun (x:{\Sint}) \rightarrow x}{{\Sint}\rightarrow{\Sint}}
+}{
+\reg[tVar]{
+\tjud[x:{\Sint}]{x}{\Sint}
+}{\done}{}
+}{}
+\si
+\reg[tVar]{ 
+\tjud{x}{{\Sint}\rightarrow{\Sbool}}
+}{\done}{}
+}{}
+\]
+
+\[\reg[tApp]{
+\tjud{x\; 3}{\Sbool}
+}{
+\reg[tVar]{
+\tjud{x}{{\Sint}\rightarrow{\Sbool}}
+}{\done}{}
+\si 
+\reg[tInt]{
+\tjud{3}{\Sint}
+}{\done}{}
+}{}
+\]
+
+\end{solutie}
+}
+%\part[1] {\bf Evaluare. } Efectuați primii 5 pași din evaluarea non-strictă a expresiei $e$. Pentru fiecare pas indicați pe săgeată axioma folosită. Pentru evaluarea non-strictă a expresiilor de tip $\Slet$ folosiți axioma:
+%\[\reg[NSLet]{\Ss{\c{\Slet x = e_1 \Sin e_2,s}}{\c{e',s}}}{}{e'=e_2[e_1/x]}\]
+\getHeight{
+\begin{solutie}
+0,25p pe tranziție
+\[\begin{array}{cl}
+&
+\c{\Slet x = {\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1} \Sin {\Sif (x\; 3) \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse x},\emptyset}
+\\
+\xrightarrow{\textsc{Let}} &
+\c{\Sif (({\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1})\; 3) \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse {\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1},\emptyset}
+\\
+\xrightarrow[\textsc{IfS}]{\textsc{App}} &
+\c{\Sif 3 \terminal{<=} 1 \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse {\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1},\emptyset}
+\\
+\xrightarrow[\textsc{IfS}]{\textsc{Op}\leq} &
+\c{\Sif {\Sfalse} \Sthen (\Sfun (x:{\Sint}) \rightarrow x) \Selse {\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1},\emptyset}
+\\
+\xrightarrow{\textsc{If}} &
+\c{\Sfun (x:{\Sint}) \rightarrow x \terminal{<=} 1,\emptyset}
+\end{array}\]
+\end{solutie}
+}
+\end{parts}
+%\newpage
+
+
+\question[3\half] {{\bf Referințe și date structurate} (DATA-IMP).}
+Fie $e$ expresia:
+\begin{asciiml}
+(fun (a : {r:{e:int}}) -> a.r.e) {t = 0; r = {e = 0; i = ref false}}
+\end{asciiml}
+
+\begin{parts}
+
+%\part[1] {\bf SubTipuri. } Probați (demonstrați) dacă:
+%\begin{asciiml}
+%{r:{}} ->  {}   <:  {c:bool; r:{d:int}} -> {}
+%\end{asciiml}
+
+%\getHeight{
+%\begin{solutie}
+%(0,15p/prima folosire a unei reguli; 0,05p pentru următoarele)
+%
+%\(\displaystyle
+%\reg[sFun]{
+%\{r:\{\}\}\rightarrow \{\} \stip \{c:{\Sbool}; r:\{d: {\Sint}\}\} \rightarrow \{\}
+%}{\displaystyle
+%\{c:{\Sbool}; r:\{d: {\Sint}\}\} \stip \{r:\{\}\}
+%\si
+%\reg[sRefl]{
+%\{\} \stip \{\}
+%}{\done}{}
+%}{}
+%\)\\\\
+%\(\displaystyle
+%\reg[sTran]{
+%\{c:{\Sbool}; r:\{d:{\Sint}\} \stip \{r:\{\}\}
+%}{
+%\reg[sRecordOrder]{\displaystyle
+%\{c:{\Sbool}; r:\{d:{\Sint}\} \stip \{r:\{d:{\Sint}; c:{\Sbool}\}
+%}{\done}{}
+%\si
+%\{r:\{d:{\Sint}; c:{\Sbool}\} \stip \{r:\{\}\}
+%}{}
+%\)\\\\
+%\(\displaystyle
+%\reg[sTran]{
+%\{r:\{d:{\Sint}; c:{\Sbool}\} \stip \{r:\{\}\}
+%}{
+%\reg[sRecordWidth]{\displaystyle
+%\{r:\{d:{\Sint}; c:{\Sbool}\} \stip  \{r:\{d:{\Sint}\} 
+%}{\done}{}
+%\si  
+%\reg[sRecordDepth]{\displaystyle
+%\{r:\{d:{\Sint}\} \stip \{r:\{\}\}
+%}{
+%\reg[sRecordWidth]{\displaystyle
+%\{d:{\Sint} \stip \{\}
+%}{\done}{}
+%}{}
+%}{}
+%\)
+%
+%\end{solutie}
+%}
+
+\part[2\half] Demonstrați că există un tip $T$ astfel încât $\tjud[]{e}{T}$.
+
+\getHeight{
+\begin{solutie}(0,15p/prima folosire a unei reguli; 0,05p pentru următoarele)
+
+Fie $t=\{c:{\Sbool}; r:\{\}\} \rightarrow \{\}$
+
+\(\displaystyle
+\reg[tApp]{
+\tjud[]{
+(\Sfun (f : t) \rightarrow  f\; \{c={\Strue}; r=\{d=7 + 3\}\})\; {\Sfun (x:\{r:\{\}\}) \rightarrow  \{r=x.r\}}
+}{\{\}}
+}{
+\tjud[]{\Sfun (f : t) \rightarrow  f\; \{c={\Strue}; r=\{d=7+3\}\}}{t \rightarrow \{\}}
+\si
+\tjud[]{\Sfun (x:\{r:\{\}\}) \rightarrow  \{r=x.r\}}{t}
+}{}
+\)\\\\
+\(\displaystyle
+\reg[tFun]{
+\tjud[]{\Sfun (f : t) \rightarrow  f\; \{c={\Strue}; r=\{d=7+3\}\}}{t \rightarrow \{\}}
+}{
+\tjud[f:t]{f\; \{c={\Strue}; r=\{d=7+3\}\}}{\{\}}
+}{}
+\)\\\\
+\(\displaystyle
+\reg[tSubSUM]{
+\tjud[]{\Sfun (x:\{r:\{\}\}) \rightarrow  \{r=x.r\}}{t}
+}{
+\reg[tFun]{
+\tjud[]{\Sfun (x:\{r:\{\}\}) \rightarrow  \{r=x.r\}}{\{r:\{\}\}\rightarrow \{r:\{\}\}}
+}{
+\reg[tRecord]{
+\tjud[x:\{r:\{\}\}]{\{r=x.r\}}{\{r:\{\}\}}
+}{
+\reg[tField]{\tjud[x:\{r:\{\}\}]{x.r}{\{\}}
+}{\reg[tVar]{
+\tjud[x:\{r:\{\}\}]{x}{\{r:\{\}\}}
+}{\done}{}
+}{}
+}{}
+}{}
+}{}
+\)\\\\
+\(
+\reg[tApp]{
+\tjud[f:t]{f\; \{c={\Strue}; r=\{d=7\}\}}{\{\}}
+}{
+\reg[tVar]{
+\tjud[f:t]{f}{t}
+}{\done}{}
+\si
+\reg[tRecord]{
+\tjud[f:t]{\{c={\Strue}; r=\{d=7\}\}}{\{c:{\Sbool}; r:\{d: {\Sint}\}\}}
+}{
+\reg[tBool]{
+\tjud[f:t]{\Strue}{\Sbool}
+}{\done}{}
+\si
+\reg[tRecord]{
+\tjud[f:t]{\{d=7\}}{d:{\Sint}}
+}{
+\reg[tInt]{
+\tjud[f:t]{7}{\Sint}
+}{\done}{}
+}{}
+}{}
+}{}
+\)
+
+\end{solutie}
+}
+
+\part[1] Scrieți arborii de demonstrație pentru fiecare pas din execuția {\bf non-strictă} a expresiei $e$ din configurația inițială $\c{e,\emptyset}$ până la o configurație finală.
+
+\getHeight{
+\begin{solutie}
+(0,15p/primii doi pași; 0,2p al treilea)
+
+\(\displaystyle
+\reg[App]{
+\Ss{\c{e,\emptyset}}
+   {\c{(\Sfun (x:\{r:\{\}\}) \rightarrow  x.r) \; \{c={\Strue}; r=\{d=7\}\},\emptyset}}
+   }{\done}{}
+\)\\\\
+\(\displaystyle
+\reg[App]{
+\Ss{{\c{(\Sfun (x:\{r:\{\}\}) \rightarrow  x.r) \; \{c={\Strue}; r=\{d=7\}\},\emptyset}}}
+   {{\c{\{c={\Strue}; r=\{d=7\}\}.r,\emptyset}}}
+}{\done}{}
+\)\\\\
+\(\displaystyle
+\reg[Field]{
+\Ss{{\c{\{c={\Strue}; r=\{d=7\}\}.r,\emptyset}}}
+   {{\c{\{d=7\},\emptyset}}}
+}{\done}{}
+\)
+
+\end{solutie}
+}
+
+\end{parts}
+%\newpage
+
+\end{questions}
+
+%Ciornă
+\end{document}
