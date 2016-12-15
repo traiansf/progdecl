@@ -1,4 +1,4 @@
-\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
 
 \usepackage[export]{adjustbox}
 \usepackage{../tslides}
@@ -148,6 +148,8 @@ x <+> y = x + y + 1
 \lstinline$13$}
 }{
 \lstinline$32$\hfill\lstinline$-- (1 <+> 2) * (3 <+> 4)$
+
+\alert{Precedența implicită este 9 (maximă)}
 }
 \vfill
 \onslide<6->\ 
@@ -244,7 +246,7 @@ liniară în lungimea primului argument
 \begin{block}
 {De ce este operatorul \alert{++} asociativ la dreapta?}
 \onslide<8->
-Vrem ca primul argument să fie cât mai mic 
+Vrem ca lungimea primului argument să fie cât mai mică 
 \lstinline$l1 ++ l2 ++ l3 ++ l4 ++ l5 == l1 ++ (l2 ++ (l3 ++ (l4 ++ l5)))$
 \end{block}
 \end{frame}

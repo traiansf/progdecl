@@ -1,4 +1,4 @@
-\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
 
 \usepackage[export]{adjustbox}
 \usepackage{../tslides}
@@ -175,11 +175,11 @@ showSeason Winter = "Winter"
   type   Height   =   Float
 
   data   Shape    =   Circle Radius
-                  |   Rect Width Height
+                  |   Rectangle Width Height
 
   area :: Shape -> Float
   area (Circle r) = pi * r^2
-  area (Rect w h) = w * h
+  area (Rectangle w h) = w * h
 \end{asciihs}
 \end{frame}
 
@@ -193,7 +193,7 @@ showSeason Winter = "Winter"
 \vspace{-2ex}
 \begin{asciihs}
   eqShape (Circle r) (Circle r')  = (r == r')
-  eqShape (Rect w h) (Rect w' h') = (w == w') && (h == h')
+  eqShape (Rectangle w h) (Rectangle w' h') = (w == w') && (h == h')
   eqShape _          _            = False
 
 \end{asciihs}
@@ -205,7 +205,7 @@ showSeason Winter = "Winter"
 \vspace{-2ex}
 \begin{asciihs}
   showShape (Circle r) = "Circle " ++ showF r
-  showShape (Rect w h) = "Rect " ++ showF w 
+  showShape (Rectangle w h) = "Rectangle " ++ showF w 
       ++ " " ++ showF h
 
   showF :: Float -> String
@@ -220,18 +220,18 @@ showSeason Winter = "Winter"
   isCircle (Circle r) = True
   isCircle _          = False
 
-  isRect :: Shape -> Bool
-  isRect (Rect w h) = True
-  isRect _          = False
+  isRectangle :: Shape -> Bool
+  isRectangle (Rectangle w h) = True
+  isRectangle _          = False
 
   radius :: Shape -> Float
   radius (Circle r) = r
 
   width :: Shape -> Float
-  width (Rect w h) = w
+  width (Rectangle w h) = w
 
   height :: Shape -> Float
-  height (Rect w h) = h
+  height (Rectangle w h) = h
 \end{asciihs}
 \end{frame}
 
@@ -239,7 +239,7 @@ showSeason Winter = "Winter"
 \begin{asciihs}
   area :: Shape -> Float
   area (Circle r) = pi * r^2
-  area (Rect w h) = w * h
+  area (Rectangle w h) = w * h
 
   area :: Shape -> Float
   area s =
@@ -248,7 +248,7 @@ showSeason Winter = "Winter"
            r = radius s
        in
            pi * r^2
-    else if isRect s then
+    else if isRectangle s then
        let
            w = width s
            h = height s

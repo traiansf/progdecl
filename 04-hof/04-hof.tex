@@ -1,4 +1,4 @@
-\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
 
 \usepackage[export]{adjustbox}
 \usepackage{../tslides}
@@ -277,7 +277,7 @@ digits (x:xs) | isDigit x = x : digits xs
 \end{block}
 \end{frame}
 
-\subsection{Funcția map}
+\subsection{Funcția filter}
 
 \begin{frame}[fragile]{Funcția \lstinline$filter$}{Definiție}
 \begin{block}{}
@@ -530,7 +530,7 @@ f :: [Int] -> Int
 f xs = sum [ x*x | x <- xs, x > 0 ]
 
 f :: [Int] -> Int
-f []                = []
+f []                = 0
 f (x:xs)| x > 0     = (x*x) + f xs
         | otherwise = f xs
         
@@ -832,33 +832,64 @@ f = foldr (+) 0 . map ( ^ 2) . filter ( > 0)
 
 \section{Map/Filter/Fold în alte limbaje}
 
+\begin{frame}[fragile]{Map/Filter/Reduce în Haskell}
+\begin{block}{Problemă}
+Aflați lungimea celui mai lung cuvânt care începe cu litera 'c' dintr-o listă dată.
+\end{block}
+
+\onslide<2>
+\begin{asciihs}
+strs = ["cezara", "petru", "claudia", "", "virgil"];
+maxLengthFn = foldr max 0 . 
+              map length . 
+              filter testC
+  where testC ('c':_) = True
+        testC _       = False
+maxLength = maxLengthFn strs
+\end{asciihs}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{Map/Filter/Reduce în Python}
+{\url{http://www.python-course.eu/lambda.php}}
+\begin{lstlisting}[language=Python,basicstyle=\small]
+strs = ["cezara", "petru", "claudia", "", "virgil"];
+def maxLengthFn(strs): 
+  return reduce(max, 
+           map(len, 
+             filter(lambda s: len(s) > 0 and s[0] == 'c', 
+               strs)));
+maxLength = maxLengthFn(strs);
+print(maxLength);
+\end{lstlisting}
+\end{frame}
+
 \begin{frame}[fragile]{Map/Filter/Reduce în Javascript}
+{\url{http://cryto.net/~joepie91/blog/2015/05/04/functional-programming-in-javascript-map-filter-reduce/}}
 \begin{lstlisting}[language=JavaScript,basicstyle=\small]
-var strs = ["cezara", "petru", "claudia", "virgil"];
-var maxLength = strs.filter(function(s){
-  return s[0]=='c';
-}).map(function(s){
-  return s.length;
-}).reduce(function(a,b){
-  return a>b?a:b;
-});
+var strs = ["cezara", "petru", "claudia", "", "virgil"];
+var maxLength = strs
+                .filter(function(s){ return s[0]=='c'; })
+                .map(function(s){ return s.length; })
+                .reduce(function(a,b){ return Math.max(a,b); });
 \end{lstlisting}
 \end{frame}
 
 
 \begin{frame}[fragile]{Map/Filter/Reduce în PHP}
+{\url{http://eddmann.com/posts/mapping-filtering-and-reducing-in-php/}}
 \begin{lstlisting}[language=PHP,basicstyle=\small,morekeywords={array_reduce}]
-$strs = array("cezara", "petru", "claudia", "virgil");
+$strs = array("cezara", "petru", "claudia", "", "virgil");
 $max_length = array_reduce(
   array_map(
     "strlen",
     array_filter(
       $strs,
-      function($s){return $s[0]=='c';})),
-  function($a,$b){
-    return $a>$b?$a:$b;
-  }, 
+      function($s){return isset($s[0]) && $s[0]=='c';})),
+  "max", 
   0);
+echo $max_length;
 \end{lstlisting}
 \end{frame}
 
@@ -872,14 +903,13 @@ import java.util.*;
 public class Main {
   public static void main(String[] args) {
     List<String> myList = Arrays.asList(
-        "cezara", "petru", "claudia", "virgil");
+        "cezara", "petru", "claudia", "", "virgil");
     int l =
         myList
             .stream()
             .filter(s -> s.startsWith("c"))
             .map(String::length)
-            .reduce(0,
-                    (l1, l2) -> l1 > l2 ? l1 : l2);
+            .reduce(0, Integer::max);
         System.out.println(l);
     }
 }
@@ -898,7 +928,7 @@ public class Main {
 #include <iostream>
 using namespace std;
 int main() {
-  vector<string>strs {"cezara", "petru", "claudia", "virgil"};
+  vector<string>strs {"cezara", "petru", "claudia", "", "virgil"};
   strs.erase(remove_if(strs.begin(), strs.end(),
                  [](string x){return x[0]!='c';}),
         strs.end());

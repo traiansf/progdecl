@@ -1,4 +1,4 @@
-\documentclass[handout,xcolor=pdftex,romanian,colorlinks]{beamer}
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
 
 \usepackage{../tslides}
 \usepackage[all]{xy}
@@ -11,6 +11,7 @@
   \titlepage
 \end{frame}
 
+\section{Motivație}
 \begin{frame}{De ce programare funcțională? De ce Haskell?}
 \begin{itemize}
 \item E bine să știm cât mai multe limbaje de programare
@@ -80,62 +81,51 @@ firstK k xs = take k (sort xs)
 \begin{itemize}
 \item Idei abstracte din matematică devin instrumente puternice practice 
 \begin{itemize}
-\item compunerea de funcții, recursivitate, monade 
+\item recursivitate, compunerea de funcții, functori, monade 
 \item folosirea lor permite scrierea de cod compact și modular
 \end{itemize}
-\vitem Rigurozitate:  ne forțează să gândim mai mult înainte, dar ne ajută sa scriem cod mai corect și mai curat
+\vitem Rigurozitate:  ne forțează să gândim mai mult înainte, dar ne ajută să scriem cod mai corect și mai curat
 \vitem Curbă de învățare în trepte
 \begin{itemize}
 \item Putem scrie programe mici destul de repede
 \item Expertiza în Haskell necesită multă \structure{gândire} și \structure{practică}
 \item Descoperirea unei lumi noi poate fi un drum distractiv și provocator
+
+\url{http://wiki.haskell.org/Humor}
 \end{itemize}
 \end{itemize}
 \end{frame}
 
-
-\begin{section}{Evaluare}
-\begin{frame}{Evaluare}
-\begin{itemize}
-\item Examen scris: 50\%  
-\vitem Notă laborator: 50\%
-\begin{itemize}
-\item Prezența la laborator e obligatorie
-\item 2 teste ($\approx$ săptămâna a 6-a și săptămâna a 11-a)
-\item Nota = media artimetică a testelor
-\end{itemize}
-\vitem Activați-vă (dacă e cazul) contul Moodle
-\begin{itemize}
-\item Puteți pune întrebări și răspunde la întrebări
-\item Slide-urile vor fi disponibile pe Moodle
-\item Notele vor fi postate pe pagina Moodle a cursului
-\end{itemize}
-\end{itemize}
+\begin{section}{Organizare}
+\begin{frame}{Plan (orientativ) cursuri}
+\begin{enumerate}
+\item Introducere
+\item Funcții, liste, recursie
+\item Operatori, funcții, recursie
+\item Funcții de ordin înalt; Map, Filter, Fold
+\item Tipuri de date algebrice
+\item Tipuri de date algebrice - evaluarea expresiilor
+\item Module și clase de tipuri
+\item Intrare/Ieșire
+\item Functori, Functori Applicativi, Monoizi
+\item Monade I
+\item Monade II
+\item Zippers
+\end{enumerate}
 \end{frame}
-
-\begin{frame}{Examenul scris}
-\begin{itemize}
-\item Va consta din probleme
-\vitem Scopul lui e să verifice fixarea cunoștințelor predate
-\vitem Cu acces (limitat) la materiale
-\begin{itemize}
-  \item un „Cheat Sheet” pentru Haskell \url{http://cheatsheet.codeslower.com/}
-  \item o foaie A4 cu ce doriți voi
-\end{itemize}
-\end{itemize}
-
-\begin{block}{Precizare}
-Pentru promovare, nota de la examenul scris trebuie să fie \alert{minim 5}.
-\end{block}
-\end{frame}
-
-\end{section}
 
 \begin{frame}{Resurse}
 \begin{itemize}
 \item Pagina Moodle a cursului: \url{http://moodle.fmi.unibuc.ro/course/view.php?id=449}
 \begin{itemize}
 \item Prezentările cursurilor, forumuri, resurse electronice
+\item Știri legate de curs vor fi postate pe Moodle
+\item Notele la teste vor fi postate tot pe Moodle
+\item Parola pentru accesarea paginii Moodle: progdecl
+\end{itemize}
+\vitem \url{http://bit.do/progdecl}
+\begin{itemize}
+\item Cele mai noi variante ale cursurilor si laboratoarelor.
 \end{itemize}
 \vitem Cartea online „Learn You a Haskell for Great Good” \url{http://learnyouahaskell.com/}
 \vitem Pagina Haskell \url{http://haskell.org}
@@ -146,19 +136,115 @@ Pentru promovare, nota de la examenul scris trebuie să fie \alert{minim 5}.
 \end{itemize}
 \end{frame}
 
+
+\begin{frame}{Evaluare}
+\begin{block}{Notare}
+\begin{itemize}
+\item 3 teste (test1, test2, test3) și activitate laborator (lab)
+\item Nota finală: 40\% test1 + 40\% test2 + 20\% test3 + 10\% lab
+\item Notele vor fi postate (doar) pe pagina Moodle a cursului.
+\end{itemize}
+\end{block}
+
+\begin{block}{Promovabilitate}
+\begin{itemize}
+\item Nota finală \alert{cel puțin 5}
+\item Prezența la laborator e obligatorie 
+\begin{itemize}
+\item minim 50\% din nr. total de prezențe
+\end{itemize} 
+\end{itemize}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Test 1}
+\begin{itemize}
+\item Pondere în calcularea notei finale: 40\%
+\item La laborator în a 6-a săptămână
+\item Durată: 1 oră
+\item Acoperă materia din cursurile 1--4
+\item Cu acces la materiale descărcate pe calculator
+\item Fără acces la rețea/internet
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Test 2}
+\begin{itemize}
+\item Pondere în acordarea notei finale: 40\%
+\item La curs, înainte de vacanță (16 decembrie)
+\item Durată: 1 oră
+\item Materia din cursurile 5--7
+\item Cu acces la materiale tipărite
+\item Fără acces la rețea/internet
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Test 3}
+\begin{itemize}
+\item Pondere în acordarea notei finale: 20\%
+\item În sesiune
+\item Materia din cursurile 8--12
+\item Durată: 2 ore
+\item Cu acces la materiale tipărite
+\item Fără acces la rețea/internet
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Activitate laborator}
+\begin{itemize}
+\item Se va puncta activitatea în plus față de cerințele obșnuite
+\begin{itemize}
+\item Probleme suplimentare
+\item La alegerea profesorului din tematica laboratorului respectiv
+\item Rezolvate în timpul laboratorului
+\end{itemize}
+\item Maxim un punct pe laborator, la latitudinea profesorului
+\item Maxim 10 puncte în total
+\item Se adaugă la nota finală cu o pondere de 10\%
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Observații despre teste și notare}
+\begin{itemize}
+\item Nu este necesar să dați toate testele pentru promovare
+\begin{itemize}
+\item ${\it test1} = 7,50 \wedge {\it test2} =  5 \implies {\it final} = 5$ 
+\item Dar este necesară nota agregată cel puțin 5
+\end{itemize}
+\vitem Pentru a lua nota finală 10 sunt necesare toate cele 3 teste
+\begin{itemize}
+\item ${\it test1} = 10 \wedge {\it test2} =  10 \wedge {\it lab} =  10 \implies {\it final} = 9$ 
+\item ${\it test1} = 10 \wedge {\it test2 =  10} \wedge {\it lab =  10} \wedge {\it test3} = 2,50$
+
+\hfill $ \implies {\it final} = 9,50\approx 10$
+\item ${\it test1} = 9 \wedge {\it test2 =  9} \wedge {\it lab =  5} \wedge {\it test3} = 9$
+
+\hfill $ \implies {\it final} = 9,50\approx 10$
+\end{itemize}
+\vitem Cursurile se bazează unele pe altele
+\begin{itemize}
+\item $\forall j < i . $ Testul $i$ presupune construcții și concepte acoperite de Testul $j$
+\end{itemize}
+\end{itemize}
+\end{frame}
+
+
+\end{section}
+
 \begin{section}{Programare declarativă vs. imperativă}
 \begin{frame}{Programare declarativă vs. imperativă}{Ce vs. cum}
 \begin{block}{Programare imperativă (Cum)}
 Explic mașinii, pas cu pas, algoritmic, \structure{cum} să facă ceva și ca rezultat, se întâmplă \alert{ce} voiam să se întâmple.
 \end{block}
-
+\onslide<2>
 \vfill\begin{block}{Programare declarativă (Ce)}
 Îi spun mașinii \structure{ce} vreau să se întâmple și o las pe ea să se prindă \alert{cum} să realizeze acest lucru. :-)
 \end{block}
 \end{frame}
 
 \begin{subsection}{Exemple}
-\begin{frame}[fragile]{Operații iterative pe colecții}{\url{http://latentflip.com/imperative-vs-declarative/}}
+\begin{frame}[fragile]{Operații iterative pe colecții}{\url{http://latentflip.com/imperative-vs-declarative}}
 \begin{block}{Imperativ (JS)}
 {\small
 \begin{lstlisting}[language=JavaScript]
@@ -180,7 +266,7 @@ doubled = map (\n -> n * 2) numbers
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Agregarea datelor dintr-o colecție (JS)}{\url{http://latentflip.com/imperative-vs-declarative/}}
+\begin{frame}[fragile]{Agregarea datelor dintr-o colecție (JS)}{\url{http://latentflip.com/imperative-vs-declarative}}
 \begin{block}{Imperativ (JS)}
 {\small
 \begin{asciijs}
@@ -204,7 +290,7 @@ total = foldl (+) 0 numbers
 \end{frame}
 
 \begin{frame}[fragile]{Extragerea informației din tabele asociate}
-{\url{http://latentflip.com/imperative-vs-declarative/}}
+{\url{http://latentflip.com/imperative-vs-declarative}}
 \begin{block}{Imperativ (JS)}
 {\small\vspace{-2ex}
 \begin{asciijs}
@@ -225,7 +311,7 @@ for(var di=0; di < dogs.length; di++) {
 \begin{block}{Declarativ (SQL)}
 {\small\vspace{-2ex}
 \begin{lstlisting}[language=SQL]
-SELECT * from dogs INNER JOIN owners
+SELECT * FROM dogs INNER JOIN owners
 WHERE dogs.owner_id = owners.id
 \end{lstlisting}}
 \end{block}
