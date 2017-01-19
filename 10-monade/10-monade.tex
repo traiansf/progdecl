@@ -30,156 +30,368 @@
   \titlepage
 \end{frame}
 
-\section{Monade}
+\section{Efecte laterale}
 
-\begin{frame}[fragile]{Monoizi}
-Un monoid e o structură algebrică dată de o operație binară \lstinline$(@@)$ și o valoare u, astfel încât \lstinline$(@@)$ este asociativă și are element neutru u.
+\begin{frame}[fragile]{Logging în C}
+\begin{asciic}
+#include <iostream>
+#include <sstream>
+using namespace std;
+ostringstream log;
+int increment(int x) {
+  log << "Called increment with argument " << x << endl;
+  return x + 1;
+}
 
+int main() {
+  int x = increment(increment(2));
+  cout << "Result: " << x << endl << "Log: " << endl << log.str();
+}
+\end{asciic}
+
+Fiecare apel al lui \lstinline$increment$ produce un mesaj. Mesajele se acumulează.
+\end{frame}
+
+\begin{frame}[fragile]{Stare în C}
+\begin{asciic}
+#include <iostream>
+using namespace std;
+int calls;
+int increment(int x) {
+  calls++;
+  return x + calls;
+}
+
+int main() {
+  int x = increment(increment(2));
+  cout << "Result: " << x << endl << "#Calls: " << calls << endl;
+}
+\end{asciic}
+
+Fiecare apel al lui \lstinline$increment$ citește starea existentă și o modifică.
+\end{frame}
+
+\begin{frame}[fragile]{Logging în Haskell}
+\begin{block}{Funcția originală}
+\vspace{-2ex}
 \begin{asciihs}
-   u @@ x              =   x
-   x @@ u              =   x
-   (x @@ y) @@ z       =   x @@ (y @@ z)
+increment :: Int -> Int
+increment x = x + 1
 \end{asciihs}
-\begin{block}
-{Exemple de monoizi}
-\begin{itemize}
-\item \lstinline$(+)$ și \lstinline$0$
-\item \lstinline$(*)$ și \lstinline$1$
-\item \lstinline$(||)$ și \lstinline$False$
-\item \lstinline$(&&)$ și \lstinline$True$
-\item \lstinline$(++)$ și \lstinline$[]$
-\item \lstinline$(>>)$ și \lstinline$done$
-\end{itemize}
+\end{block}
+\begin{block}{Funcție cu logging}
+„Îmbogățim” la rezultatul funcției cu mesajul de log.
+\begin{asciihs}
+logIncrement :: Int -> (Int,String)
+logIncrement x = (x + 1, "Called increment with argument " ++ show x ++ "\n")
+\end{asciihs}
+\onslide<2->
+\alert{Problemă:} Cum calculăm „\lstinline$logIncrement (logIncrement x)$”?
 \end{block}
 \end{frame}
 
 
-\begin{frame}[fragile]{Monade}
-\lstinline$(>>)$ and \lstinline$done$ verifică axiomele de monoid.
+\begin{frame}[fragile]{Stare în Haskell}
+\begin{block}{Funcția originală în C}
+\vspace{-2ex}
+\begin{asciic}
+int increment(int x) {
+  return x + calls++;
+}
+\end{asciic}
+\end{block}
+\begin{block}{Funcția cu stare în Haskell}
+Rezultatul este acum o funcție, care dată fiind starea dinaintea executiei, produce un rezultat (folosind eventual starea) și starea cea nouă.
 \begin{asciihs}
-   done >> m          =   m
-   m >> done          =   m
-   (m >> n) >> o      =   m >> (n >> o)
+type State = Integer
+stateIncrement :: Int -> (State -> (Int, State))
+stateIncrement x = f
+  where f calls = (x+calls, calls+1)
 \end{asciihs}
 
-\vfill
-În mod asemănator, \lstinline$(>>=)$ și \lstinline$return$ verifică axiomele de \structure{monadă}
-\begin{asciihs}
-  return v >>= \x -> m        =  m[v/x]
-  m >>= \x -> return x        =  m
-  (m >>= \x -> n) >>= \y-> o  =  m >>= \x -> (n >>= \y -> o)
-\end{asciihs}
-
-\onslide<2>
-\vfill
-Alternativ, folosind ideea de \structure{continuare}:
-\begin{asciihs}
-  return v >>= k    =  k v
-  m >>= return      =  m
-  (m >>= k) >>= k'  =  m >>= \x -> (k x >>= k')
-\end{asciihs}
+\alert{Problemă:} Cum calculăm ”\lstinline$stateIncrement (stateIncrement x)$”?
+\end{block}
 \end{frame}
 
+\begin{frame}[fragile]{Computații nedeterministe}
+\begin{block}{Exemplu matematic}
+\begin{itemize}
+\item Ecuația $y^2 = x$ are două soluții: $\sqrt{x}$ și $-\sqrt{x}$ (complexe, dacă $x<0$).
+\item Putem rezolva $z^4 = x$ folosind rezolvarea de mai sus, astfel:
+\begin{itemize}
+\item Notăm $y = z^2$ și rezolvăm $y^2 = x$ cu soluțiile $\sqrt{x}$ și $-\sqrt{x}$
+\item Pentru fiecare soluție $s$ rezolvam $z^2 = s$, obținând $\sqrt{\sqrt{x}}$, $-\sqrt{\sqrt{x}}$, $\sqrt{-\sqrt{x}}$ și $-\sqrt{-\sqrt{x}}$
+\end{itemize}
+\end{itemize}
+\end{block}
+
+\begin{block}{Computație nedeterministă în Haskell}
+Rezultatul funcției e listă tuturor valorilor posibile.
+\begin{asciihs}
+ndSqrt :: Floating a => a -> [a]
+ndSqrt x = [sqrt x, -(sqrt x)]
+\end{asciihs}
+\alert{Problemă:} Cum calculăm ”\lstinline$ndSqrt (ndSqrt x)$”?
+
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Cum compunem funcții cu efecte laterale}
+\begin{block}{Problema generală}
+Dată fiind funcția \lstinline$f :: a -> m b$ și funcția  \lstinline$g :: b -> m c$, vreau să obțin o funcție \lstinline$g # f :: a -> m c$ care este „compunerea” lui $g$ și $f$, propagând efectele laterale.
+\end{block}
+
+\begin{block}{Soluție}
+Transform \lstinline$g :: b -> m c$ în \lstinline$bind g :: m b -> m c$ pentru un bind „cu proprietăți bune”
+\begin{asciihs}
+bind :: (b -> m c) -> m b -> m c
+(#) :: (b -> m c) -> (a -> m b) -> (a -> m c)
+g # f = bind g . f
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+
+
+\section{Monade}
 %
+%\begin{frame}[fragile]{Monoizi}
+%Un monoid e o structură algebrică dată de o operație binară \lstinline$(@@)$ și o valoare u, astfel încât \lstinline$(@@)$ este asociativă și are element neutru u.
 %
-%Similarly, (>>=) and return satisfy the laws of a monad.
-%   return v >>= \x -> m               =   m[x:=v]
-%   m >>= \x -> return x               =   m
-%   (m >>= \x -> n) >>= \y-> o         =   m >>= \x -> (n >>= \y -> o)
-%\begin{frame}[fragile]{}
 %\begin{asciihs}
+%   u @@ x              =   x
+%   x @@ u              =   x
+%   (x @@ y) @@ z       =   x @@ (y @@ z)
+%\end{asciihs}
+%\begin{block}
+%{Exemple de monoizi}
+%\begin{itemize}
+%\item \lstinline$(+)$ și \lstinline$0$
+%\item \lstinline$(*)$ și \lstinline$1$
+%\item \lstinline$(||)$ și \lstinline$False$
+%\item \lstinline$(&&)$ și \lstinline$True$
+%\item \lstinline$(++)$ și \lstinline$[]$
+%\item \lstinline$(>>)$ și \lstinline$done$
+%\end{itemize}
+%\end{block}
+%\end{frame}
+%
+%
+%\begin{frame}[fragile]{Monade}
+%\lstinline$(>>)$ and \lstinline$done$ verifică axiomele de monoid.
+%\begin{asciihs}
+%   done >> m          =   m
+%   m >> done          =   m
+%   (m >> n) >> o      =   m >> (n >> o)
+%\end{asciihs}
+%
+%\vfill
+%În mod asemănator, \lstinline$(>>=)$ și \lstinline$return$ verifică axiomele de \structure{monadă}
+%\begin{asciihs}
+%  return v >>= \x -> m        =  m[v/x]
+%  m >>= \x -> return x        =  m
+%  (m >>= \x -> n) >>= \y-> o  =  m >>= \x -> (n >>= \y -> o)
+%\end{asciihs}
+%
+%\onslide<2>
+%\vfill
+%Alternativ, folosind ideea de \structure{continuare}:
+%\begin{asciihs}
+%  return v >>= k    =  k v
+%  m >>= return      =  m
+%  (m >>= k) >>= k'  =  m >>= \x -> (k x >>= k')
 %\end{asciihs}
 %\end{frame}
-
-%Laws of Let
-%We know that (>>) and done satisfy the laws of a monoid.
-%   done >> m           =   m
-%   m >> done           =   m
-%   (m >> n) >> o       =   m >> (n >> o)
 %
-%                    =   let x = m in (let y = n in o)
-\begin{frame}[fragile]{Monade, notație \lstinline$do$ și \lstinline$let$}
-\lstinline$(>>=)$ și \lstinline$return$ verifică axiomele de monadă.
-\begin{asciihs}
-  return v >>= \x -> m        =  m[v/x]
-  m >>= \x -> return x        =  m
-  (m >>= \x -> n) >>= \y-> o  =  m >>= \x -> (n >>= \y -> o)
-\end{asciihs}
-
+%%
+%%
+%%Similarly, (>>=) and return satisfy the laws of a monad.
+%%   return v >>= \x -> m               =   m[x:=v]
+%%   m >>= \x -> return x               =   m
+%%   (m >>= \x -> n) >>= \y-> o         =   m >>= \x -> (n >>= \y -> o)
+%%\begin{frame}[fragile]{}
+%%\begin{asciihs}
+%%\end{asciihs}
+%%\end{frame}
 %
-%The three monad laws have analogues in “let” notation.
-Axiome analoage pentru let:
-\begin{asciihs}
-   let x = v in m   =   m[v/x]
-   let x = m in x   =   m
-   let y = (let x = m in n) in o
-                    =   let x = m in (let y = n in o)
-\end{asciihs}
-
-\onslide<2>
-Notație \lstinline$do$ pentru expresiile de mai sus:
-\begin{asciihs}
-  do {x <- return v ; m}         =  m[v/x] 
-  do {x <- m ; return x}         =  m
-  do {y <- do {x <- m ; n} ; o}  =  do {x <- m ; 
-                                        do {y <- n ; o}}
-\end{asciihs}
-
-\end{frame}
-
-\begin{frame}[fragile]{Axiomele lui let și efectele laterale}
-\begin{asciihs}
-   let x = v in m   =   m[v/x]
-   let x = m in x   =   m
-   let y = (let x = m in n) in o
-                    =   let x = m in (let y = n in o)
-\end{asciihs}
-Axiomele acestea țin și în limbaje cu efecte laterale dacă v e valoare.
-
-În limbaje „pure” precum Haskell, prima axiomă poate fi întărită astfel:
-\begin{asciihs}
-   let x = n in m   =   m[n/x]
-\end{asciihs}
-cu înțelesul că o variabilă poate fi înlocuită peste tot cu orice termen. Deoarece limbajul este pur, evaluarea lui n nu va produce efecte laterale, indiferent de câte ori este evaluat.
-\end{frame}
-%“Let” in languages with and without effects
-%   let x = v in m   =   m[x:=v]
+%%Laws of Let
+%%We know that (>>) and done satisfy the laws of a monoid.
+%%   done >> m           =   m
+%%   m >> done           =   m
+%%   (m >> n) >> o       =   m >> (n >> o)
+%%
+%%                    =   let x = m in (let y = n in o)
+%\begin{frame}[fragile]{Monade, notație \lstinline$do$ și \lstinline$let$}
+%\lstinline$(>>=)$ și \lstinline$return$ verifică axiomele de monadă.
+%\begin{asciihs}
+%  return v >>= \x -> m        =  m[v/x]
+%  m >>= \x -> return x        =  m
+%  (m >>= \x -> n) >>= \y-> o  =  m >>= \x -> (n >>= \y -> o)
+%\end{asciihs}
+%
+%%
+%%The three monad laws have analogues in “let” notation.
+%Axiome analoage pentru let:
+%\begin{asciihs}
+%   let x = v in m   =   m[v/x]
 %   let x = m in x   =   m
 %   let y = (let x = m in n) in o
 %                    =   let x = m in (let y = n in o)
+%\end{asciihs}
 %
-%These laws hold even in languages with side effects. For the first law to be true, v
-%must be not an arbitrary term but a value, such as a constant or a variable (but not
-%a function application). A value immediately evaluates to itself, hence it can have
-%no side effects.
-%While in such languages one only has the above three laws for “let”, in Haskell
-%one has a much stronger law, where one may replace a variable by any term, rather
-%than by any value.
-%   let x = n in m         =   m[x:=n]
+%\onslide<2>
+%Notație \lstinline$do$ pentru expresiile de mai sus:
+%\begin{asciihs}
+%  do {x <- return v ; m}         =  m[v/x] 
+%  do {x <- m ; return x}         =  m
+%  do {y <- do {x <- m ; n} ; o}  =  do {x <- m ; 
+%                                        do {y <- n ; o}}
+%\end{asciihs}
+%
+%\end{frame}
+%
+%\begin{frame}[fragile]{Axiomele lui let și efectele laterale}
+%\begin{asciihs}
+%   let x = v in m   =   m[v/x]
+%   let x = m in x   =   m
+%   let y = (let x = m in n) in o
+%                    =   let x = m in (let y = n in o)
+%\end{asciihs}
+%Axiomele acestea țin și în limbaje cu efecte laterale dacă v e valoare.
+%
+%În limbaje „pure” precum Haskell, prima axiomă poate fi întărită astfel:
+%\begin{asciihs}
+%   let x = n in m   =   m[n/x]
+%\end{asciihs}
+%cu înțelesul că o variabilă poate fi înlocuită peste tot cu orice termen. Deoarece limbajul este pur, evaluarea lui n nu va produce efecte laterale, indiferent de câte ori este evaluat.
+%\end{frame}
+%%“Let” in languages with and without effects
+%%   let x = v in m   =   m[x:=v]
+%%   let x = m in x   =   m
+%%   let y = (let x = m in n) in o
+%%                    =   let x = m in (let y = n in o)
+%%
+%%These laws hold even in languages with side effects. For the first law to be true, v
+%%must be not an arbitrary term but a value, such as a constant or a variable (but not
+%%a function application). A value immediately evaluates to itself, hence it can have
+%%no side effects.
+%%While in such languages one only has the above three laws for “let”, in Haskell
+%%one has a much stronger law, where one may replace a variable by any term, rather
+%%than by any value.
+%%   let x = n in m         =   m[x:=n]
 
 
 \begin{frame}[fragile]{Clasa de tipuri \lstinline$Monad$}
-{Control.Monad.Monad}
 \begin{asciihs}
-  class Monad m where
-    return :: a -> m a
+class Applicative m => Monad m where
     (>>=) :: m a -> (a -> m b) -> m b
+    return :: a -> m a
+    return = pure    
 \end{asciihs}
 \begin{itemize}
-\item m este un constructor de tipuri
-
-m a --- tipul \structure{computațiilor} care produc rezultate de tip a
-\item Tipul \lstinline$a -> m b$ este tipul \structure{continuărilor}
-
-Continuare: O funcție care folosește un rezultat de tip a pentru a produce o computatie de tip b
+\item m a --- tipul \structure{computațiilor} care produc rezultate de tip a (și au efecte laterale)
+\item Tipul \lstinline$a -> m b$ este tipul \structure{continuărilor} / a funcțiilor cu efecte laterale
 
 \item \lstinline$(>>=)$ este operația de „secvențiere” a computațiilor
 
-\item \lstinline$return$ este continuarea trivială
+\item \lstinline$bind k ma = ma >>= k$, adică \lstinline$bind = flip (>>=)$
+\item \lstinline$(g # f) x = (bind g . f) x = bind g (f x) = f x >>= g$
 
-Pentru un v dat, produce computația care va avea ca rezultat acel v.
 \end{itemize}
 \end{frame}
+
+\subsection{Instanțe}
+\begin{frame}[fragile]{Logging în Haskell}
+\begin{block}{Funcție cu logging}
+\begin{asciihs}
+data Log a = Log { val :: a, log :: String }
+
+logIncrement :: Int -> Log Int
+logIncrement x = Log (x + 1) ("Called increment with argument " ++ show x ++ "\n")
+
+logIncrement2 :: Int -> Log Int
+logIncrement2 x = logIncrement x >>= logIncrement
+\end{asciihs}
+\end{block}
+\onslide<2>
+\begin{block}{Instanța Monad pentru Log}
+\begin{asciihs}
+instance Monad Log where
+  return a = Log a ""
+  ma >>= k = Log {val = val mb, log = log ma ++ log mb}
+    where mb = k (val ma)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Stare în Haskell}
+\begin{block}{Funcția cu stare în Haskell}
+\vspace{-2ex}
+\begin{asciihs}
+data State state val = State {apply :: state -> (val,state)}
+
+stateIncrement :: Int -> State Int Int
+stateIncrement x = State f
+  where f calls = (x+calls, calls+1)
+
+stateIncrement2 :: Int -> State Int Int
+stateIncrement2 x = stateIncrement x >>= stateIncrement
+\end{asciihs}
+\end{block}
+\onslide<2>
+\begin{block}{Instanța Monad pentru stare}
+\vspace{-2ex}
+\begin{asciihs}
+instance Monad (State state) where
+  return a = State (\ s -> (a, s)) 
+  ma >>= k = State g
+    where g state = let (val, state') = apply ma state 
+                     in apply (k val) state'
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Computații nedeterministe}
+\begin{block}{Computație nedeterministă în Haskell}
+Rezultatul funcției e listă tuturor valorilor posibile.
+\begin{asciihs}
+ndSqrt :: Floating a => a -> [a]
+ndSqrt x = [sqrt x, -(sqrt x)]
+
+ndSqrt2 :: Floating a => a -> [a]
+ndSqrt2 x = ndSqrt x >>= ndSqrt
+\end{asciihs}
+\end{block}
+
+\onslide<2>
+\begin{block}{Instanța Monad pentru liste}
+\vspace{-2ex}
+\begin{asciihs}
+instance Monad [] where
+  return a = [a] 
+  xs >>= k = [y | x <- xs, y <- k x]
+\end{asciihs}
+\end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]{Proprietățile monadelor}
+\begin{block}{Pe scurt}
+Operația de compunere \lstinline$#$ a continuărilor este asociativă și are element neutru \lstinline$return$
+\end{block}
+
+\begin{block}{Pe mai putin scurt}
+\begin{description}
+\item[NeutruD] \lstinline$(return x) >>= g = g x$
+\item[NeutruS] \lstinline$x >>= return = x$
+\item[Assoc] \lstinline$(fm >>= g) >>= h = fm >>= \ x -> (g x >>= h)$
+\end{description}
+\end{block}
+
+\end{frame}
+
 
 %The Monad type class
 
@@ -195,16 +407,13 @@ Pentru un v dat, produce computația care va avea ca rezultat acel v.
 
 \begin{frame}[fragile]{Monada MyIO}{partea I}
 \begin{asciihs}
-   module MyIO(MyIO, myPutChar, myGetChar, convert) where
+module MyIO(MyIO, myPutChar, myGetChar, convert) where
 
-   type Input = String
-   type Remainder = String
-   type Output = String
+type Input = String
+type Output = String
 
-   newtype MyIO a  =  MyIO (Input -> (a, Remainder, Output))
+data MyIO a = MyIO { apply :: Input -> (a, Input, Output) }
 
-   apply :: MyIO a -> Input -> (a, Remainder, Output)
-   apply (MyIO f) inp = f inp
 \end{asciihs}
 
 \begin{block}{Observație: Tipul MyIO is abstract}
@@ -224,10 +433,10 @@ Pentru un v dat, produce computația care va avea ca rezultat acel v.
 \begin{frame}[fragile]{Monada MyIO}{partea II}
 \begin{asciihs}
  myPutChar :: Char -> MyIO ()
- myPutChar c = MyIO (\ inp -> ((), inp, [c]))
+ myPutChar c = MyIO (\ input -> ((), input, [c]))
 
  myGetChar :: MyIO Char
- myGetChar = MyIO (\ (ch:remainder) -> (ch, remainder, ""))
+ myGetChar = MyIO (\ (ch:input') -> (ch, input', ""))
 \end{asciihs}
 
 \begin{block}
@@ -247,12 +456,11 @@ Pentru un v dat, produce computația care va avea ca rezultat acel v.
 \begin{frame}[fragile]{Monada MyIO}{partea III}
 \begin{asciihs}
    instance Monad MyIO where
-     return x = MyIO (\ inp -> (x, inp, ""))
-     m >>= k  = MyIO (\ inp ->
-                    let (x, rem1, out1) = apply m inp
-                        (y, rem2, out2) = apply (k x) rem1 
-                      in
-                        (y, rem2, out1++out2))
+     return x = MyIO (\ input -> (x, input, ""))
+     m >>= k  = MyIO (\ input ->
+        let (x, input1, output1) = apply m input
+            (y, input2, output2) = apply (k x) input1 
+         in (y, input2, output1 ++ output2))
 \end{asciihs}
 
 \begin{block}
@@ -280,9 +488,9 @@ Pentru un v dat, produce computația care va avea ca rezultat acel v.
 \begin{frame}[fragile]{Monada MyIO}{partea IV}
 \begin{asciihs}
    convert :: MyIO () -> IO ()
-   convert m = interact (\inp ->
-                   let (x, rem, out) = apply m inp in
-                   out)
+   convert m = interact (\ input ->
+                   let (x, input', output) = apply m input
+                    in output)
 \end{asciihs}
 
 Unde
@@ -404,409 +612,6 @@ face parte din biblioteca standard, si face următoarele:
 %     Part VIII
 %
 %The monad of lists
-\section{Monada listelor}
-
-\begin{frame}[fragile]{Monada listelor}
-Definiția în biblioteca standard:
-\begin{asciihs}
-     class Monad m where
-       return :: a -> m a
-       (>>=) :: m a -> (a -> m b) -> m b
-
-     instance Monad [] where
-
-       return       :: a -> [a]
-       return x     = [ x ]
-
-       (>>=)        :: [a] -> (a -> [b]) -> [b]
-       m >>= k      = [ y | x <- m, y <- k x ]
-\end{asciihs}
-Recursiv:
-\vspace{-1ex}
-\begin{asciihs}
-       [] >>= k            =   []
-       (x:xs) >>= k        =   (k x) ++ (xs >>= k)
-\end{asciihs}
-Cu funcții de ordin înalt:
-\vspace{-1ex}
-\begin{asciihs}
-       m >>= k    =   concat (map k m)
-\end{asciihs}
-\end{frame}
-
-\begin{frame}[fragile]{Monada listelor}{Intuiție}
-\begin{asciihs}
-     instance Monad [] where
-
-       return       :: a -> [a]
-       return x     = [ x ]
-
-       (>>=)        :: [a] -> (a -> [b]) -> [b]
-       m >>= k      = [ y | x <- m, y <- k x ]
-\end{asciihs}
-\begin{itemize}
-\item Tipul [a] tipul computațiilor nedetermniste, 
-
-care pot întoarce 0, 1, sau mai multe rezultate
-\vitem \lstinline$return$ este continuare care dat fiind un rezultat, întoarce
-(determinst) doar acel rezultat
-\vitem \lstinline$m >>= k$ aplică continuarea $k$ fiecărui rezultat al lui x
-și agreghează rezultatele
-\end{itemize}
-\end{frame}
-
-
-
-
-%The monad of lists
-
-
-\begin{frame}[fragile]{Descrieri de liste și monada listelor}
-{Notație \lstinline$do$}
-\begin{asciihs}
-   pairs :: Int -> [(Int, Int)]
-   pairs n = [ (i,j) | i <- [1..n], j <- [(i+1)..n] ]
-\end{asciihs}
-este echivalentă cu
-\begin{asciihs}
-   pairs' :: Int -> [(Int, Int)]
-   pairs' n = do {
-                  i <- [1..n];
-                  j <- [(i+1)..n];
-                  return (i,j)
-                }
-\end{asciihs}
-Exemplu:
-\begin{asciihs}
-   *Main> pairs 4
-   [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
-   *Main> pairs' 4
-   [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
-\end{asciihs}
-\end{frame}
-
-
-\begin{frame}[fragile]{Monade cu structură de monoid}
-\vspace{-1ex}
-Definiția în biblioteca standard:
-\begin{asciihs}
-   class Monad m => MonadPlus m where
-     mzero :: m a
-     mplus :: m a -> m a -> m a
-
-   instance MonadPlus [] where
-      mzero     :: [a]
-      mzero     = []
-
-      mplus     :: [a] -> [a] -> [a]
-      mplus     = (++)
-
-   guard :: MonadPlus m => Bool -> m ()
-   guard False = mzero
-   guard True   = return ()
-
-   msum :: MonadPlus m => [m a] -> m a
-   msum = foldr mplus mzero
-\end{asciihs}
-\end{frame}
-
-
-%Monads with plus
-%In the standard prelude:
-
-\begin{frame}[fragile]{Descrieri de liste cu filtrare}
-\begin{asciihs}
-   pairs'' :: Int -> [(Int, Int)]
-   pairs'' n = [ (i,j) | i <- [1..n], j <- [1..n], i < j ]
-\end{asciihs}
-este echivalentă cu
-\begin{asciihs}
-   pairs''' :: Int -> [(Int, Int)]
-   pairs''' n = do {
-                    i <- [1..n];
-                    j <- [1..n];
-                    guard (i < j);
-                    return (i,j)
-                  }
-\end{asciihs}
-Exemplu
-\begin{asciihs}
-   *Main> pairs'' 4
-   [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
-   *Main> pairs''' 4
-   [(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]
-\end{asciihs}
-\end{frame}
-
-\section{Analiză sintactică}
-
-\begin{frame}[fragile]{Tipul unui analizor sintactic}
-\begin{block}
-{Prima încercare}
-\begin{asciihs}
-   type Parser a = String -> a
-\end{asciihs}
-\onslide<2->
-\begin{itemize}
-\item Dar cel puțin pentru rezultate parțiale, va mai rămâne ceva de analizat
-\end{itemize}
-\end{block}
-%
-%Second attempt:
-\onslide<3->
-\begin{block}
-{A doua încercare}
-\begin{asciihs}
-   type Parser a = String -> (a, String)
-\end{asciihs}
-\onslide<4>
-\begin{itemize}
-\item Dar dacă gramatica e ambiguă?
-\item Dar dacă intrarea nu corespunde nici unui element din a?
-\end{itemize}
-\end{block}
-\end{frame}
-
-
-%Parser type
-%
-%
-%
-%                         A parser for things
-%                     is a function from strings
-%                           to lists of pairs
-%                        Of things and strings
-%                                             —Graham Hutton
-\begin{frame}[fragile]{Tipul unui analizor sintactic}{A treia încercare}
-\hfill \href{http://www.willamette.edu/~fruehr/haskell/seuss.html}{\includegraphics[scale=.4]{SeussFinal2}}\hfill\;
-\end{frame}
-
-\begin{frame}[fragile]{Modulul Parser}
-{partea I}
-\begin{asciihs}
-  module Parser(Parser,apply,parse,char,spot,token,
-    star,plus,parseInt) where
-
-  import Char
-  import Monad
-
-  -- Tipul (incapsulat) Parser
-  newtype Parser a = Parser (String -> [(a, String)])
-
-  -- Folosirea unui parser (functie privata)
-  apply :: Parser a -> String -> [(a, String)]
-  apply (Parser f) s = f s
-
-  -- Daca exista parsare, da prima varianta
-  parse :: Parser a -> String -> a
-  parse m s = head [ x | (x,t) <- apply m s, t == "" ]
-\end{asciihs}
-\end{frame}
-
-
-%Module Parser
-
-\begin{frame}[fragile]{Modulul Parser}{partea II: Parser e monadă}
-\begin{asciihs}
-
-  --   class Monad m where
-  --     return :: a -> m a
-  --     (>>=) :: m a -> (a -> m b) -> m b
-
-  instance Monad Parser where
-    return x  = Parser (\s -> [(x,s)])
-    m >>= k   = Parser (\s ->
-                   [ (y, u) |
-                     (x, t) <- apply m s,
-                     (y, u) <- apply (k x) t ])
-\end{asciihs}
-\end{frame}
-
-
-%Parser is a Monad
-
-\begin{frame}[fragile]{Modulul Parser}{partea II: Parser e monadă cu plus}
-\begin{asciihs}
-  --   class MonadPlus m where
-  --     mzero :: m a
-  --     mplus :: m a -> m a -> m a
-
-  instance MonadPlus Parser where
-    mzero      = Parser (\s -> [])
-    mplus m n  = Parser (\s -> apply m s ++ apply n s)
-\end{asciihs}
-
-\begin{itemize}
-\item mzero reprezintă analizorul sintactic care eșuează tot timpul
-\item mplus reprezintă combinarea alternativelor
-\end{itemize}
-
-\end{frame}
-
-
-%Parser is a Monad with Plus
-%  -- Some monads have additional structure
-%
-
-\begin{frame}[fragile]{Parsare pentru caractere}
-\begin{asciihs}
-  -- Recunoasterea unui caracter
-  char :: Parser Char
-  char = Parser f
-    where
-    f []     = []
-    f (c:s) = [(c,s)]
-
-  -- Recunoasterea unui caracter cu o proprietate
-  spot :: (Char -> Bool) -> Parser Char
-  spot p = Parser f
-    where
-    f []                 = []
-    f (c:s) | p c        = [(c, s)]
-            | otherwise = []
-
-  -- Recunoasterea unui anumit caracter
-  token :: Char -> Parser Char
-  token c = spot (== c)
-\end{asciihs}
-\end{frame}
-
-
-%Parsing characters
-
-
-\begin{frame}[fragile]{Recunoașterea unui caracter cu o proprietate}
-{Gărzi și notație \lstinline$do$}
-\begin{asciihs}
-  spot :: (Char -> Bool) -> Parser Char
-  spot p = Parser f
-    where
-    f []                 = []
-    f (c:s) | p c        = [(c, s)]
-            | otherwise = []
-\end{asciihs}
-e echivalentă cu
-\begin{asciihs}
-  spot :: (Char -> Bool) -> Parser Char
-  spot p = do { c <- char; guard (p c); return c }
-\end{asciihs}
-\end{frame}
-
-\begin{frame}[fragile]{Recunoașterea unui cuvânt cheie}
-\begin{asciihs}
-  match :: String -> Parser String
-  match []      = return []
-  match (x:xs) = do
-                     y <- token x;
-                     ys <- match xs;
-                     return (y:ys)
-\end{asciihs}
-\end{frame}
-
-
-%Parsing a string
-
-\begin{frame}[fragile]{Recunoașterea unei secvențe repetitive}
-\begin{asciihs}
-  -- Steluta Kleene (zero, una sau mai multe repetitii)
-  star :: Parser a -> Parser [a]
-  star p = plus p `mplus` return []
-
-  -- cel putin o repetitie
-  plus :: Parser a -> Parser [a]
-  plus p = do { x <- p;
-                xs <- star p;
-                return (x:xs) }
-\end{asciihs}
-\end{frame}
-
-
-%Parsing a sequence
-
-\begin{frame}[fragile]{Recunoașterea unui numar întreg}
-\begin{asciihs}
-  -- Recunoasterea unui numar natural
-  parseNat :: Parser Int
-  parseNat = do { s <- plus (spot isDigit);
-                  return (read s) }
-
-  -- Recunoasterea unui numar negativ
-  parseNeg :: Parser Int
-  parseNeg = do { token '-';
-                  n <- parseNat
-                  return (-n) }
-
-  -- Recunoasterea unui numar intreg
-  parseInt :: Parser Int
-  parseInt = parseNat `mplus` parseNeg
-\end{asciihs}
-\end{frame}
-
-
-%Parsing an integer
-
-\begin{frame}[fragile]{Modulul Exp}
-\begin{asciihs}
-  module Exp where
-
-  import Monad
-  import Parser
-
-  data Exp = Lit Int
-           | Exp :+: Exp
-           | Exp :*: Exp
-           deriving (Eq,Show)
-
-  evalExp   :: Exp -> Int
-  evalExp   (Lit n)    = n
-  evalExp   (e :+: f) = evalExp e + evalExp f
-  evalExp   (e :*: f) = evalExp e * evalExp f
-\end{asciihs}
-\end{frame}
-
-
-%Module Exp
-
-
-\begin{frame}[fragile]{Recunoașterea unei expresii}
-\begin{asciihs}
-  parseExp :: Parser Exp
-  parseExp = parseLit `mplus` parseAdd `mplus` parseMul
-    where
-    parseLit = do { n <- parseInt;
-                    return (Lit n) }
-    parseAdd = do { token '(';
-                    d <- parseExp;
-                    token '+';
-                    e <- parseExp;
-                    token ')';
-                    return (d :+: e) }
-    parseMul = do { token '(';
-                    d <- parseExp;
-                    token '*';
-                    e <- parseExp;
-                    token ')';
-                    return (d :*: e) }
-\end{asciihs}
-\end{frame}
-
-
-%Parsing an expression
-
-\begin{frame}[fragile]{Recunoașterea unei expresii}{Test}
-\begin{asciihs}
-  *Exp> parse parseExp "(1+(2*3))"
-  Lit 1 :+: (Lit 2 :*: Lit 3)
-  *Exp> evalExp (parse parseExp "(1+(2*3))")
-  7
-  *Exp> parse parseExp "((1+2)*3)"
-  (Lit 1 :+: Lit 2) :*: Lit 3
-  *Exp> evalExp (parse parseExp "((1+2)*3)")
-  9
-\end{asciihs}
-\end{frame}
-
-
 
 \end{document}
 

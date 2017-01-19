@@ -23,7 +23,7 @@
 
 \title[PD---Meta-Programare]{Programare declarativă}
 
-\subtitle{Functori, functori aplicativi, monoizi\thanks{bazat pe \emph{\href{http://learnyouahaskell.com/functors-applicative-functors-and-monoids}{Learn You a Haskell for Great Good}}}}
+\subtitle{Functori, functori aplicativi\thanks{bazat pe \emph{\href{http://learnyouahaskell.com/functors-applicative-functors-and-monoids}{Learn You a Haskell for Great Good}}}}
 
 \begin{document}
 \begin{frame}
@@ -158,11 +158,11 @@ Dată fiind o funcție \lstinline$f :: a -> b$ și o listă $la$ de elemente de 
 \begin{frame}[fragile]{Clasa de tipuri Functor}
 \begin{block}{Definiție}
 \begin{asciihs}
-class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+class Functor m where
+  fmap :: (a -> b) -> m a -> m b
 \end{asciihs}
 
-Dată fiind o funcție \lstinline$f :: a -> b$ și \lstinline$ca :: f a$, \lstinline$fmap$ produce \lstinline$cb :: f b$ \color{gray}{obținută prin transformarea rezultatelor produse de computația \lstinline$ca$ folosind funcția \lstinline$f$ (și doar atât!)}
+Dată fiind o funcție \lstinline$f :: a -> b$ și \lstinline$ca :: m a$, \lstinline$fmap$ produce \lstinline$cb :: m b$ \color{gray}{obținută prin transformarea rezultatelor produse de computația \lstinline$ca$ folosind funcția \lstinline$f$ (și doar atât!)}
 
 \end{block}
 \vfill
@@ -177,7 +177,7 @@ instance Functor [] where
 \begin{frame}[fragile]{Clasa de tipuri Functor}{Instanțe}
 \begin{asciihs}
 class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+  fmap :: (a -> b) -> m a -> m b
 \end{asciihs}
 \vfill
 \begin{block}{Instanță pentru tipul optiune \lstinline$fmap :: (a -> b) -> Maybe a -> Maybe b$}
@@ -203,7 +203,7 @@ instance Functor Arbore where
 \begin{frame}[fragile]{Clasa de tipuri Functor}{Instanțe}
 \begin{asciihs}
 class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+  fmap :: (a -> b) -> m a -> m b
 \end{asciihs}
 \vfill
 \begin{block}{Instanță pentru tipul eroare \lstinline$fmap :: (a -> b) -> Either e a -> Either e b$}
@@ -229,7 +229,7 @@ instance Functor (->) a where
 \begin{frame}[fragile]{Clasa de tipuri Functor}{Instanțe}
 \begin{asciihs}
 class Functor f where
-  fmap :: (a -> b) -> f a -> f b
+  fmap :: (a -> b) -> m a -> m b
 \end{asciihs}
 \vfill
 \begin{block}{Instanță pentru tipul I/O \lstinline$fmap :: (a -> b) -> IO a -> IO b$}
@@ -298,13 +298,13 @@ Main> fmap (show . (*2) . read) getLine  >>=  putStrLn
 
 \begin{frame}{Proprietăți ale functorilor}
 \begin{itemize}
-\item Argumentul \lstinline$f$ al lui \lstinline$Functor f$ definește o transformare de tipuri 
+\item Argumentul \lstinline$m$ al lui \lstinline$Functor m$ definește o transformare de tipuri 
 \begin{itemize}
-\item \lstinline$f a$ este tipul \lstinline$a$ transformat prin functorul \lstinline$f$
+\item \lstinline$m a$ este tipul \lstinline$a$ transformat prin functorul \lstinline$m$
 \end{itemize}
 \item \lstinline$fmap$ definește transformarea corespunzătoare a funcțiilor
 \begin{itemize}
-\item \lstinline$fmap :: (a -> b) -> $\alert{\lstinline$($}\lstinline$f a -> f b$\alert{\lstinline$)$}
+\item \lstinline$fmap :: (a -> b) -> $\alert{\lstinline$($}\lstinline$m a -> m b$\alert{\lstinline$)$}
 \end{itemize}
 \end{itemize}
 \begin{block}{Contractul lui \lstinline$fmap$}
@@ -313,7 +313,7 @@ Main> fmap (show . (*2) . read) getLine  >>=  putStrLn
 \item Abstractizat prin două legi:
 \begin{description}
 \item[identitate] \lstinline$fmap id == id$
-\item[compunere] \lstinline$fmap (f . g) == fmap f . fmap g$
+\item[compunere] \lstinline$fmap (g . f) == fmap g . fmap f$
 \end{description}
 \end{itemize}
 \end{block}
@@ -470,12 +470,12 @@ Date fiind două categorii $\mathbb{C}$ și $\mathbb{D}$, un functor $F : \mathb
 
 \vfill
 \structure{În Haskell}
- o instanță \lstinline$Functor f$ este dată de
+ o instanță \lstinline$Functor m$ este dată de
 \begin{itemize}
-\item Un tip \lstinline$f a$ pentru orice tip \lstinline$a$ (deci \lstinline$f$ trebuie sa fie tip parametrizat)
+\item Un tip \lstinline$m a$ pentru orice tip \lstinline$a$ (deci \lstinline$m$ trebuie sa fie tip parametrizat)
 \item Pentru orice două tipuri \lstinline$a$ și \lstinline$b$, o funcție 
 \begin{asciihs}
-fmap :: (a -> b) -> (f a -> f b)
+fmap :: (a -> b) -> (m a -> m b)
 \end{asciihs}
 \item Compatibilă cu identitățile și cu compunerea
 \begin{asciihs}
@@ -491,33 +491,64 @@ fmap (g . f) == fmap g . fmap f
 
 \begin{frame}{Problemă}
 \begin{itemize}
-\item Folosind \lstinline$fmap$ putem transforma o funcție \lstinline$h :: a -> b$ într-o funcție între cutii/computații \lstinline$fmap h :: f a -> f b$
+\item Folosind \lstinline$fmap$ putem transforma o funcție \lstinline$h :: a -> b$ într-o funcție între cutii/computații \lstinline$fmap h :: m a -> m b$
 \item Dar ce se întâmplă dacă avem o funcție cu mai multe argumente
 
-E.g., cum trecem de la \lstinline$h :: a -> b -> c$   la \lstinline$h' :: f a -> f b -> f c$
+E.g., cum trecem de la \lstinline$h :: a -> b -> c$   la \lstinline$h' :: m a -> m b -> m c$
 
 \item putem încerca să folosim \lstinline$fmap$
 
 \onslide<2>
 \item Dar, deoarece \lstinline$h :: a -> (b -> c)$, avem că 
-\lstinline$fmap h :: f a -> f (b -> c)$
+\lstinline$fmap h :: m a -> m (b -> c)$
 
-\item Putem aplica \lstinline$fmap h$ la o valoare \lstinline$fa :: f a$ și obținem
-\lstinline$fmap h fa :: f (b -> c)$
-
-\item \alert{Problemă:} Cum transformăm o cutie care conține o funcție într-o funcție între cutii
-
-\item Dacă avem asta, putem transforma funcții cu oricâte argumente.
+\item Putem aplica \lstinline$fmap h$ la o valoare \lstinline$ca :: m a$ și obținem
+\lstinline$fmap h ca :: m (b -> c)$
 \end{itemize}
+\vfill
+\begin{alertblock}{Problemă}
+Cum transformăm un obiect din \lstinline$m (b -> c)$ într-o funcție \lstinline$m b -> m c$?
+\begin{itemize}
+\item \lstinline$ap :: m (b -> c) -> (m b -> m c)$, sau, ca operator
+\item \lstinline$(<*>) :: m (b -> c) -> m b -> m c$
+\end{itemize}
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Merge pentru funcții cu oricâte argumente}
+\begin{alertblock}{Problemă}
+Dată fiind o funcție \lstinline$f :: a1 ->  a2 -> a3 -> ... -> an -> a$
+și computațiile \lstinline$ca1 :: m a1$, \ldots, \lstinline$can :: m an$,
+vrem să „aplicăm” funcția $f$ pe rând computațiilor \lstinline$ca1$,  \ldots, \lstinline$can$ pentru a obține o computație finală \lstinline$ca :: m a$.
+\end{alertblock}
+\vfill
+\begin{block}{Soluție: {\color{black}
+Date fiind }}
+\begin{itemize}
+\item funcția \lstinline$fmap :: (a -> b) -> m a -> m b$
+\item funcția \lstinline$(<*>) :: m (b -> c) -> m b -> m c$ cu „proprietăți bune”
+\end{itemize}
+Atunci
+\begin{minipage}[t]{.8\columnwidth}
+\begin{itemize}
+\item[] \lstinline$fmap f :: m a1 ->  m (a2 -> a3 -> ... -> an -> a)$
+\item[] \lstinline$fmap f ca1 :: m (a2 -> a3 -> ... -> an -> a)$
+\item[] \lstinline$fmap f ca1 <*> ca2 :: m (a3 -> ... -> an -> a)$
+\item[] \dots
+\item[] \lstinline$fmap f ca1 <*> ca2 <*> ca3 ... <*> can :: m a$
+\end{itemize}
+\end{minipage}
+\end{block}
+
 \end{frame}
 
 \begin{frame}[fragile]{Clasa de tipuri Applicative}
 \begin{block}{Definiție}{}
 \vspace{-2ex}
 \begin{asciihs}
-class Functor f => Applicative f where
-   pure :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
+class Functor m => Applicative m where
+   pure :: a -> m a
+  (<*>) :: m (a -> b) -> m a -> m b
 \end{asciihs}
 
 \begin{itemize}
@@ -537,16 +568,23 @@ class Functor f => Applicative f where
 
 \end{frame}
 
-\begin{frame}[fragile]{Clasa de tipuri Applicative}{Instanțe}
+
+\subsection{Instanțe}
+
+\begin{frame}[fragile]{Tipul opțiune}
 \begin{asciihs}
-class Functor f => Applicative f where
-   pure :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
+Main> pure "Hey" :: Maybe String
+Just "Hey"
+Main> (++) <$> (Just "Hey ") <*> (Just "You!")
+Just "Hey You!"
+Main> let mDiv x y = if y == 0 then Nothing else Just (x `div` y)
+Main> let f x = 4 + 10 `div` x
+Main> let mF x = (+) <$> pure 4 <*> mDiv 10 x
 \end{asciihs}
+\onslide<2->
 
 \begin{block}{Instanță pentru tipul opțiune}
 \vspace{-2ex}
-\onslide<2>
 \begin{asciihs}
 instance Applicative Maybe where
   pure = Just
@@ -554,11 +592,23 @@ instance Applicative Maybe where
   Just f  <*> x = fmap f x
 \end{asciihs}
 \end{block}
+\end{frame}
 
-\onslide<1->
+
+\begin{frame}[fragile]{Tipul opțiune}
+\begin{asciihs}
+Main> pure "Hey" :: Either a String
+Right "Hey"
+Main> (++) <$> (Right "Hey ") <*> (Right "You!")
+Right "Hey You!"
+Main> let mDiv x y = if y == 0 then Left "Division by 0!" else Right (x `div` y)
+Main> let f x = 4 + 10 `div` x
+Main> let mF x = (+) <$> pure 4 <*> mDiv 10 x
+\end{asciihs}
+\onslide<2->
+
 \begin{block}{Instanță pentru tipul eroare}
 \vspace{-2ex}
-\onslide<2>
 \begin{asciihs}
 instance Applicative (Either a) where
   pure = Right
@@ -568,27 +618,38 @@ instance Applicative (Either a) where
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Clasa de tipuri Applicative}{Instanțe}
+\begin{frame}[fragile]{Tipul listă (computație nedeterministă)}
 \begin{asciihs}
-class Functor f => Applicative f where
-   pure :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
+Main> pure "Hey" :: [String]
+["Hey"]
+Main> (++) <$> ["Hello ", "Goodbye "] <*> ["world", "happiness"]["Hello world","Hello happiness","Goodbye world","Goodbye happiness"]
+Main> [(+),(*)] <*> [1,2] <*> [3,4]
+[4,5,5,6,3,4,6,8]
+Main> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11] 
+[55,80,100,110]
 \end{asciihs}
 
+\onslide<2>
 \begin{block}{Instanță pentru tipul computațiilor nedeterministe (liste)}
 \vspace{-2ex}
-\onslide<2>
 \begin{asciihs}
 instance Applicative [] where
   pure x = [x]
   fs  <*> xs = [f x | f <- fs, x <- xs]
 \end{asciihs}
 \end{block}
+\end{frame}
 
-\onslide<1->
+\begin{frame}[fragile]{Tipul I/O}
+\begin{asciihs}
+Main> (++) <$> getLine <*> getLine >>= putStrLn 
+hello
+ world!
+hello world!
+\end{asciihs}
+\onslide<2>
 \begin{block}{Instanță pentru tipul computațiilor I/O}
 \vspace{-2ex}
-\onslide<2>
 \begin{asciihs}
 instance Applicative IO where
   pure = return
@@ -600,16 +661,23 @@ instance Applicative IO where
 \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Clasa de tipuri Applicative}{Instanțe}
+\begin{frame}[fragile]{Tipul funcțiilor de sursă dată}
 \begin{asciihs}
-class Functor f => Applicative f where
-   pure :: a -> f a
-  (<*>) :: f (a -> b) -> f a -> f b
+data Exp = Lit Int | Var String | Exp :+: Exp
+type Env = [(String, Int)]
+
+find :: String -> (Env -> Int)
+find x env = head [i | (y,i) <- env, y == x]
+
+eval :: Exp -> (Env -> Int)
+eval (Lit i) = pure i
+eval (Var x) = find x
+eval (e1 :+: e2) = (+) <$> eval e1 <*> eval e2
 \end{asciihs}
 
+\onslide<2>
 \begin{block}{Instanță pentru tipul funcțiilor de sursă dată}
 \vspace{-2ex}
-\onslide<2>
 \begin{asciihs}
 instance Applicative ((->) t) where
   pure :: a -> (t -> a)
@@ -621,35 +689,24 @@ instance Applicative ((->) t) where
 
 \end{frame}
 
-\begin{frame}[fragile]{Clasa de tipuri Applicative}{Exemple}
+\begin{frame}[fragile]{Liste ca fluxuri de date.}
 \begin{asciihs}
-Main> pure "Hey" :: [String]
-
-Main> pure "Hey" :: Maybe String
-
-Main> [(*0),(+100),(^2)] <*> [1,2,3]
-
-Main> [(+),(*)] <*> [1,2] <*> [3,4]  
-
-Main> (++) <$> ["ha","heh","hm"] <*> ["?","!","."]  
-
-Main> filter (>50) $ (*) <$> [2,5,10] <*> [8,10,11] 
-
-Main> (++) <$> getLine <*> getLine >>= putStrLn 
-hello
- world!
-
+newtype ZList a = ZList { get :: [a]}
 \end{asciihs}
-\end{frame}
-
-
-\begin{frame}[fragile]{ZipList}
-
-Idee: în loc să privim listele ca computații nedeterministe, le privim ca fluxuri de date.
-
 \begin{asciihs}
-newtype ZipList a = ZipList { getZipList :: [a]}
+> get $ max <$> ZList [1,2,3,4,5,3] <*> ZList [5,3,1,2]  
+[5,3,3,4]  
+> get $ (+) <$> ZList [1,2,3] <*> ZList [100,100..]  
+[101,102,103]  
+> get $ (,,) <$> ZList "dog" <*> ZList "cat" <*> ZList "rat"  
+[('d','c','r'),('o','a','a'),('g','t','t')]  
+\end{asciihs}
 
+\onslide<2>
+
+\begin{block}{Instanță pentru ZipList}
+\vspace{-2ex}
+\begin{asciihs}
 instance Functor ZipList where
   fmap f (ZipList xs) = ZipList (fmap f xs)
   
@@ -658,21 +715,9 @@ instance Applicative ZipList where
   ZipList fs <*> ZipList xs = 
     ZipList (zipWith (\ f x -> f x) fs xs)
 \end{asciihs}
+\end{block}
 
 
-\end{frame}
-
-\begin{frame}[fragile]{ZipList}{Exemple}
-\begin{asciihs}
-Main> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100,100]  
-[101,102,103]  
-Main> getZipList $ (+) <$> ZipList [1,2,3] <*> ZipList [100,100..]  
-[101,102,103]  
-Main> getZipList $ max <$> ZipList [1,2,3,4,5,3] <*> ZipList [5,3,1,2]  
-[5,3,3,4]  
-Main> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"  
-[('d','c','r'),('o','a','a'),('g','t','t')]  
-\end{asciihs}
 \end{frame}
 
 \begin{frame}{Proprietăți ale functorilor aplicativi}
@@ -728,6 +773,7 @@ Main> getZipList $ (,,) <$> ZipList "dog" <*> ZipList "cat" <*> ZipList "rat"
 %\end{block}
 %\end{frame}
 %
+\end{document}
 
 \section{Monoizi}
 
