@@ -1,0 +1,141 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} 
+\usepackage{fullpage}
+\usepackage{../tdefinition}
+\pagestyle{empty}
+%\header{Prenumele, numele și grupa: \enspace\hrulefill}{}{Subiect \thequestion}
+\extrawidth{0.5in}
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+
+\begin{document}
+
+\begin{center}
+Programare declarativă---Examen scris \hfill  12 mai 2017
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\begin{questions}
+
+\question[3\half]{Elemente avansate de programare funcțională.}
+
+Următorul tip de date reprezintă expresiile aritmetice cu o singură variabilă:
+\begin{asciihs}
+data Expr = X -- variabla
+      | Const Integer -- intreg
+      | Expr :+: Expr -- adunare
+      | Expr :-: Expr -- scadere
+      | Expr :*: Expr -- inmultire
+      | IfLt Expr Expr Expr Expr -- expresie conditionala
+\end{asciihs}
+\lstinline$IfLt p q r s$ reprezintă expresia care în Haskell ar fi scrisă ca 
+\lstinline$if p < q then r else s$.
+
+\begin{parts}
+\part[1\half] Scrieți o funcție \lstinline$eval :: Expr -> Integer -> Integer$ care, dată fiind o expresie și valoarea variabilei \lstinline$X$, calculează valoarea expresiei. De exemplu:
+\begin{asciihs}
+eval (X :+: (X :*: Const 2)) 3 = 9
+eval (X :-: (X :*: Const 3)) 0 = 0
+eval (X :-: (X :*: Const 3)) 7 = -14
+eval (X :+: X) 2 = 4
+eval (Const 15 :+: (Const 7 :*: (X :-: Const 1))) 0 = 8
+eval (X :-: (X :+: X)) 4 = -4
+\end{asciihs}
+
+\part[2] 
+Scrieți o funcție \lstinline$protejeaza :: Expr -> Expr$ that transformă expresia pentru a evita apariția rezultatelor negative, in felul următor:
+\begin{itemize}
+\item Constantele negative devin 0
+\item La toate operațiile de scădere se adaugă o verificare că descăzutul e mai mare decăt scăzătorul; în caz contrar, rezultatul scăderii va deveni 0.
+\item Se adaugă o verificare inițială că variabila X este mai mare ca 0; în caz contrar intreaga expresie va fi evaluata la 0
+\end{itemize}
+
+Nu simplificați rezultatul prin omiterea testelor care nu par necesare.
+De exemplu:
+\begin{asciihs}
+protect (X :+: (X :*: Const 2))
+ = IfLt X 0 (Const 0) 
+        (X :+: (X :*: Const 2))
+protect (X :-: (X :*: Const 3))
+ = IfLt X 0 (Const 0) 
+        (IfLt X (X :*: Const 3) (Const 0) (X :-: (X :*: Const 3)))
+protect (X :+: X)
+ = IfLt X 0 (Const 0) 
+        (X :+: X)
+protect (Const 15 :+: (Const 7 :*: (X :-: Const 1)))
+ = IfLt X 0 (Const 0) 
+        (Const 15 :+: (Const 7 :*: IfLt X (Const 1)
+                                        (Const 0)
+                                        (X :-: Const 1)))
+protect (X :-: (X :+: X))
+ = IfLt X 0 (Const 0)
+        (IfLt X (X :+: X) (Const 0) (X :-: (X :+: X)))
+\end{asciihs}
+\end{parts}
+\question[3\half]
+{Elemente de bază de programare funcțională}
+\begin{parts}
+\part[1]
+Scrieți o funcție \lstinline$p :: [Int] -> Int$ care calculează suma cuburilor numerelor pozitive dintr-o listă dată. De exemplu:
+\begin{asciihs}
+p [-13] = 0
+p [] = 0
+p [-3,3,1,-3,2,-1] = 36
+p [2,6,-3,0,3,-7,2] = 259
+p [4,-2,-1,-3] = 64
+\end{asciihs}
+Folosiți {\em funcții elementare}, {\em descrieri de liste} și {\em funcții din biblioteci}, dar nu {\em recursie}.
+
+\part[1\half]
+Scrieți o a doua funcție \lstinline$q :: [String] -> Int$ care se comportă la fel ca \lstinline$p$, folosind doar {\em funcții elementare}, {\em recursie} și {\em funcții din biblioteci}, dar nu  {\em descrieri de liste}.
+
+\part[1]
+Scrieți o a treia funcție \lstinline$r :: [String] -> Int$ care se comportă la fel ca \lstinline$p$, de data aceasta folosind următoarele funcții de ordin înalt din biblioteca standard:
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+filter :: (a -> Bool) -> [a] -> [a]
+foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Nu puteți folosi {\em recursie} și {\em descrieri de liste}.
+\end{parts}
+
+\question[2]{Elemente specifice limbajului Haskell.}
+
+Se dă următoarea secvență de declarații în Haskell:
+
+\begin{asciihs}
+type Id = String
+data AExp = Lit Int | Var Id | AExp :+: AExp | AExp :<=: AExp
+data Stmt = Decl Id | If AExp Stmt Stmt | Id := AExp | Stmt :; Stmt | Skip
+type Mem = [(Id, Int)]
+eval :: Stmt -> Mem
+\end{asciihs}
+
+Să se completeze definiția funcției \lstinline$eval$ pentru a putea calcula starea memoriei (Mem) în urma execuției instrucțiunii date ca argument.  Observatie: Puteți defini oricâte funcții ajutătoare.
+
+\lstinline$Decl$ inițializează o nouă varibilă în memorie (dacă nu exista deja), cu valoarea 0.
+\lstinline$If$ are aceeași semantică ca în C (dacă valoarea expresiei e diferită de 0 se execută prima instrucțiune, dacă nu cea de-a doua). Operatorul \lstinline$:;$ este operatorul de compunere secvențială a instrucțiunilor; semantica lui este: se execută prima instrucțiune mai întâi, apoi a doua instrucțiune se execută în starea de după execuția primei instrucțiuni. \lstinline$Skip$ este instrucțiunea vidă. 
+
+Punctaj: 2 puncte din care 0,5 rezolvarea, + 1 rezolvarea folosind monade + 0,5 rezolvarea folosind monada predefinită cea mai potrivită.
+\end{questions}
+
+Se acordă un punct din oficiu.
+\end{document}
+\question[24] 
+Recursivitate, descrieri de liste, map/filter/fold
+\begin{parts}
+\part[12]
+Scrieți o funcție \lstinline$f :: String -> String$ care repetă fiecare caracter succesiv din șirul de intrare odată în plus față de caracterul precedent, începând cu o primă apariție a primului caracter. De exemplu:
+\begin{asciihs}
+f "abcde"  == "abbcccddddeeeee"
+f "ZYw"    == "ZYYwww"
+f ""       == ""
+f "Inf1FP" == "Innfff1111FFFFFPPPPPP"
+\end{asciihs}
+Folosiți {\em funcții elementare}, {\em descrieri de liste} și {\em funcții din biblioteci}, dar nu {\em recursie}.
+\part[12]
+Scrieți o a doua funcție \lstinline$g :: String -> String$ care se comportă la fel ca \lstinline$f$, folosind doar {\em funcții elementare}, {\em recursie} și {\em funcții din biblioteci}, dar nu  {\em descrieri de liste}.
+\end{parts}
+
