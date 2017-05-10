@@ -406,22 +406,14 @@ Operația de compunere \lstinline$#$ a continuărilor este asociativă și are e
 
 
 \begin{frame}[fragile]{Monada MyIO}{partea I}
-\begin{asciihs}
-module MyIO(MyIO, myPutChar, myGetChar, convert) where
-
-type Input = String
-type Output = String
-
-data MyIO a = MyIO { apply :: Input -> (a, Input, Output) }
-
-\end{asciihs}
+\lstinputlisting[linerange={1-7}]{MyIO.hs}
 
 \begin{block}{Observație: Tipul MyIO is abstract}
 \begin{itemize} 
-\item Sunt exportate doar tipul MyIO, myPutChar, myGetChar, convert 
+\item Sunt exportate doar tipul \lstinline$MyIO$, \lstinline$myPutChar$, \lstinline$myGetChar$, \lstinline$convert$ 
 
 (și operațiile de monadă)
-\item Nu este exportat constructorul MyIO și nici operația apply
+\item Nu este exportat constructorul \lstinline$MyIO$ și nici operația \lstinline$apply$
 \end{itemize}
 \end{block} 
 \end{frame}
@@ -431,21 +423,15 @@ data MyIO a = MyIO { apply :: Input -> (a, Input, Output) }
 
 
 \begin{frame}[fragile]{Monada MyIO}{partea II}
-\begin{asciihs}
- myPutChar :: Char -> MyIO ()
- myPutChar c = MyIO (\ input -> ((), input, [c]))
-
- myGetChar :: MyIO Char
- myGetChar = MyIO (\ (ch:input') -> (ch, input', ""))
-\end{asciihs}
+\lstinputlisting[linerange={9-13}]{MyIO.hs}
 
 \begin{block}
 {Exemplu}
 \begin{asciihs}
-   apply myGetChar "abc" == ('a',    "bc", "")
-   apply myGetChar "bc"   == ('b',   "c", "")
-   apply (myPutChar 'A') "def" ==    ((), "def", "A")
-   apply (myPutChar 'B') "def" ==    ((), "def", "B")
+   runMyIO myGetChar        "abc" == ('a',  "bc",  "")
+   runMyIO myGetChar        "bc"  == ('b',   "c",  "")
+   runMyIO (myPutChar 'A')  "def" == ( (), "def", "A")
+   runMyIO (myPutChar 'B')  "def" == ( (), "def", "B")
 \end{asciihs}
 \end{block}
 
@@ -454,26 +440,19 @@ data MyIO a = MyIO { apply :: Input -> (a, Input, Output) }
 
 
 \begin{frame}[fragile]{Monada MyIO}{partea III}
-\begin{asciihs}
-   instance Monad MyIO where
-     return x = MyIO (\ input -> (x, input, ""))
-     m >>= k  = MyIO (\ input ->
-        let (x, input1, output1) = apply m input
-            (y, input2, output2) = apply (k x) input1 
-         in (y, input2, output1 ++ output2))
-\end{asciihs}
+\lstinputlisting[linerange={20-25}]{MyIO.hs}
 
 \begin{block}
 {Exemplu}
 \vspace{-2ex}
 \begin{asciihs}
-   apply
-     (myGetChar >>= \x -> myGetChar >>= \y -> return [x,y])
-     "abc"
+runMyIO
+  (do { x <- myGetChar ; y <- myGetChar ; return [x,y] } )
+  "abc"
    == ("ab", "c", "")
-   apply (myPutChar 'A' >> myPutChar 'B') "def"
+runMyIO (myPutChar 'A' >> myPutChar 'B') "def"
    == ((), "def", "AB")
-   apply (myGetChar >>= \x -> myPutChar (toUpper x)) "abc"
+runMyIO (myGetChar >>= \x -> myPutChar (toUpper x)) "abc"
    == ((), "bc", "A")
 \end{asciihs}
 \end{block}
@@ -486,12 +465,7 @@ data MyIO a = MyIO { apply :: Input -> (a, Input, Output) }
 %For example
 
 \begin{frame}[fragile]{Monada MyIO}{partea IV}
-\begin{asciihs}
-   convert :: MyIO () -> IO ()
-   convert m = interact (\ input ->
-                   let (x, input', output) = apply m input
-                    in output)
-\end{asciihs}
+\lstinputlisting[linerange={15-18}]{MyIO.hs}
 
 Unde
 \begin{asciihs}

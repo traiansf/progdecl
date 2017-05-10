@@ -9,5 +9,7 @@
 *.swp
 *.bbl
 *.blg
+*.fls
+*.fdb*
 *.out.ps
 Thumbs.db

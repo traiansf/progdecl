@@ -1,0 +1,248 @@
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
+
+\usepackage[export]{adjustbox}
+\usepackage{../tslides}
+\usepackage[all]{xy}
+\usepackage{pgfplots}
+\usepackage{flowchart}
+\usetikzlibrary{arrows,positioning,calc}
+\lstset{language=Haskell}
+\lstset{escapeinside={(*@}{@*)}}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\title[PD---Monade]{Programare declarativă\thanks{bazat pe cursul \emph{Informatics 1: Functional Programming} de la \emph{University of Edinburgh}}}
+
+\subtitle{Monade Standard}
+
+\begin{document}
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{Evaluare cu efecte laterale}
+
+\subsection{Sintaxă abstractă}
+
+\begin{frame}[fragile]{Lambda calcul cu întregi}
+{Sintaxă}
+\lstinputlisting[firstline=8,lastline=14]{var0.hs}
+\end{frame}
+
+
+\begin{frame}[fragile]
+{Valori și medii de evaluare}
+\lstinputlisting[firstline=37,lastline=46]{var0.hs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Evaluare}{Variabile și valori}
+\lstinputlisting[linerange={48-52,61-65}]{var0.hs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Evaluare}{Adunare}
+\lstinputlisting[linerange={53-56,66-69}]{var0.hs}
+\end{frame}
+
+\begin{frame}[fragile]
+{Evaluare}{Aplicarea funcțiilor}
+\lstinputlisting[linerange={57-60,70-73}]{var0.hs}
+\end{frame}
+
+\begin{frame}[fragile]{Testarea interpretorului}
+\lstinputlisting[linerange={75-76}]{var0.hs}
+
+unde
+
+\lstinputlisting[linerange={5-5}]{var0.hs}
+
+este o funcție definită special pentru fiecare tip de efecte laterale dorit.
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Identitate}
+\lstinputlisting[linerange={3-6}]{var0.hs}
+
+Unde monada \lstinline$Identity$ capturează transformarea identitate:
+
+\begin{asciihs}
+newtype Identity a = Identity { runIdentity :: a }
+instance Monad Identity where
+    return   = Identity
+    m >>= k  = k (runIdentity m)
+\end{asciihs}
+\structure{Observație:} Obținem interpretorul standard discutat în cursurile trecute
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Optiune}
+Putem renunța la valoarea \lstinline$Wrong$ folosind monada \lstinline$Maybe$
+\lstinputlisting[linerange={2-6}]{var1.hs}
+
+Putem acum înlocui rezultatele \lstinline$Wrong$ cu \lstinline$Nothing$
+\lstinputlisting[linerange={60-62,65-66,69-70}]{var1.hs}
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Either String}
+Putem nuanța erorile folosind monada \lstinline$Either String$
+\lstinputlisting[linerange={2-3,5-6}]{var2.hs}
+
+Putem acum înlocui rezultatele \lstinline$Wrong$ cu valori \lstinline$Left$
+\lstinputlisting[linerange={60-62,65-67,70-71}]{var2.hs}
+\end{frame}
+
+\begin{frame}[fragile]{Monada Stare}{Control.Monad.State}
+\begin{asciihs}
+newtype State s a = State { runState :: s -> (a, s) }
+
+instance Monad (State s) where
+  return x = State (\ s -> (x,s))
+  m >>= k  = State (\ s -> 
+    let (x, s') = runState m s
+     in runState (k x) s'
+
+get :: State s s                 -- produce starea curenta
+get = State (\ s -> (s,s))     
+
+put :: s -> State s ()           -- schimba starea curenta
+put s = State (\ _ -> ((), s))
+
+modify :: (s -> s) -> State s () -- modfica starea
+modify f = State (\ s -> ((), f s))
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Stare}{Adăugarea unui contor de intstrucțiuni}
+\begin{asciihs}
+data Term = ... | Count
+\end{asciihs}
+
+\lstinputlisting[linerange={3-4,12-13}]{var3.hs}
+
+\vspace{-1ex}\lstinputlisting[linerange={78-78,82-82}]{var3.hs}
+unde
+\lstinputlisting[linerange={5-6}]{var3.hs}
+
+Iar evaluarea lui \lstinline$Count$ se face astfel:
+\lstinputlisting[linerange={68-70}]{var3.hs}
+\end{frame}
+
+\begin{frame}[fragile]{Monoizi}{Data.Monoid.Monoid}
+\begin{asciihs}
+class Monoid m where
+    mempty  :: m
+    mappend :: m -> m -> m
+\end{asciihs}
+
+\begin{block}{Monoidul listelor}
+\begin{asciihs}
+instance Monoid [a] where
+    mempty  = []
+    mappend = (++)
+\end{asciihs}
+\end{block}
+\begin{block}{Monoidul conjunctiv\hfill Data.Monoid.All}
+\vspace{-2ex}
+\begin{asciihs}
+newtype All = All { getAll :: Bool }
+
+instance Monoid All where
+        mempty = All True
+        All x `mappend` All y = All (x && y)
+\end{asciihs}
+\end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Monada Writer}{Control.Monad.Writer}
+Este folosită pentru a acumula (logging) informatie produsă în timpul execuției
+\begin{asciihs}
+newtype Writer w a = Writer { runWriter :: (a, w) }
+
+instance Monoid w => Monad (Writer w) where
+  return x = Writer (x, mempty)
+  ma >>= k = Writer $
+    let (x, w)   = runWriter ma
+        (x', w') = runWriter (k x)
+     in (x', w `mappend` w')
+
+tell :: w -> Writer w ()
+tell w = Writer ((), w)
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Writer}{Adăugarea unei instrucțiuni de afișare}
+\begin{asciihs}
+data Term = ... | Out Term
+\end{asciihs}
+
+\lstinputlisting[linerange={3-7}]{var4.hs}
+
+\lstinputlisting[linerange={62-65}]{var4.hs}
+
+\begin{itemize}
+\item \lstinline$Out t$ se evaluează la valoarea lui \lstinline$t$ 
+\item cu efectul lateral de a adăuga valoarea la șirul de ieșire.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada listelor}{Adăugarea unei instrucțiuni nedeterministe}
+\begin{asciihs}
+data Term = ... | Amb Term Term | Fail
+\end{asciihs}
+
+\lstinputlisting[linerange={2-5}]{var5.hs}
+
+\lstinputlisting[linerange={61-62}]{var5.hs}
+
+\begin{asciihs}
+Main> test (App (Lam "x" (Var "x" :+: Var "x")) (Amb (Con 1) (Con 2)))
+"[2,4]"
+\end{asciihs}
+\end{frame}
+
+\begin{frame}[fragile]{Monada Reader}{Control.Monad.Reader}
+Face accesibilă o memorie imutabilă (environment)
+\begin{asciihs}
+newtype Reader r a = Reader { runReader :: r -> a }
+
+instance Monad (Reader r) where
+  return x = Reader (\ _ -> x)
+  ma >>= k = Reader $ \ r ->
+    let x = runReader ma r
+     in runReader (k x) r
+
+-- obtine memoria
+ask :: Reader r r
+ask = Reader (\r -> r)
+
+-- modifica local memoria
+local :: (r -> r) -> Reader r a -> Reader r a
+local f ma = Reader $ \r -> runReader ma (f r)
+\end{asciihs}
+\end{frame}  
+
+\begin{frame}[fragile]{Interpretare în monada Reader}{Eliminarea argumentului \lstinline$Environment$ -- expresii de bază și lookup}
+\lstinputlisting[linerange={3-6}]{var6.hs}
+
+\lstinputlisting[linerange={48-50,63-69}]{var6.hs}
+\end{frame}
+
+\begin{frame}[fragile]{Interpretare în monada Reader}{Eliminarea argumentului \lstinline$Environment$ -- operatori binari și funcții}
+\lstinputlisting[linerange={55-62}]{var6.hs}
+
+\lstinputlisting[linerange={51-54}]{var6.hs}
+\end{frame}
+
+\end{document}
+
+
+
