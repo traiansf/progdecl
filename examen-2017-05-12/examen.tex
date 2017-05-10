@@ -1,0 +1,137 @@
+\documentclass[addpoints,12pt,a4paper]{exam}
+%,answers
+\usepackage[none]{hyphenat} 
+\usepackage{fullpage}
+\usepackage{../tdefinition}
+\pagestyle{empty}
+%\header{Prenumele, numele și grupa: \enspace\hrulefill}{}{Subiect \thequestion}
+\extrawidth{0.5in}
+\newcommand{\bs}{\char`\\} \newcommand{\bt}{\char`\`}
+\newcommand{\us}{\char`\_}
+
+\begin{document}
+
+\begin{center}
+Programare declarativă---Examen scris \hfill  12 mai 2017
+\end{center}
+
+\pointpoints{punct}{puncte}
+
+\begin{questions}
+
+\question[3\half]{Elemente avansate de programare funcțională.}
+
+Introducem un tip de date pentru a reprezenta arbori binari ai căror frunze sunt etichetate cu valori întregi, definiți astfel:
+\begin{asciihs}
+data Tree = Empty
+   | Leaf Int
+   | Node Tree Tree
+\end{asciihs}
+Exemple de arbori definiți cu reprezentarea de mai sus:
+
+\begin{asciihs}
+t1 = Empty
+t2 = Node (Leaf 1)
+          Empty
+t3 = Node (Node (Node (Leaf 3)
+                      Empty)
+                (Leaf 1))
+          (Node Empty
+                (Node (Leaf 3)
+                      (Leaf 5)))
+t4 = Node (Node (Node Empty
+                      Empty)
+                (Leaf 1))
+          (Node Empty
+                (Node Empty
+                      Empty))
+\end{asciihs}
+\begin{parts}
+\part[1] Scrieți o funcție \lstinline$adancime :: Tree -> Int$ care calculează adâncimea maximă a unei frunze din arbore. De exemplu, pentru exemplele de mai sus:
+\begin{asciihs}
+adancime t1 = 0
+adancime t2 = 2
+adancime t3 = 4
+adancime t4 = 3  -- deoarece la adancimea 4 nu sunt frunze
+\end{asciihs}
+Rezultatul trebuie să fie 0 pentru toți arborii care nu au frunze.
+
+{\bf Indicație:} Arborii de forma \lstinline$Node t1 t2$ care nu conțin frunze trebuie tratați special.
+\part[1\half] 
+Scrieți o funcție \lstinline$adanci1 :: Tree -> [Int]$ care calculează lista valorilor asociate frunzelor de adâncime maximă, in ordinea în care acestea apar.
+Folosiți funcția \lstinline$adancime$ pentru a calcula adancimea maximă, apoi calculați lista valorilor de la acea adâncime.
+
+Pentru exemplele de mai sus:
+\begin{asciihs}
+adanci1 t1 = []
+adanci1 t2 = [1]
+adanci1 t3 = [3,3,5]
+adanci1 t4 = [1]
+\end{asciihs}
+
+\part[1] Scrieți o funcție \lstinline$adanci2 :: Tree -> [Int]$  care calculează lista valorilor asociate frunzelor de adâncime maximă, in ordinea în care acestea apar, folosind o altă metodă: traversați arborele, aplicănd \lstinline$adanci2$ recursiv doar acelor subarbori care au frunze de adâncime maximă, folosind funcția \lstinline$adancime$ pentru ambii subarbori. Rezultatul ar trebui să fie același ca pentru \lstinline$adanci1$. Nu puteți folosi \lstinline$adanci1$ în rezolvare.
+\end{parts}
+\question[3\half]
+{Elemente de bază de programare funcțională}
+\begin{parts}
+\part[1]
+Scrieți o funcție \lstinline$p :: [String] -> Int$ care, dată fiind o listă de șiruri de caractere, însumează lungimile cuvintelor din listă care au fost abreviate. Pentru această problemă, o abreviere este orice șir de caractere care conține simbolul '.' (punct). De exemplu:
+\begin{asciihs}
+p ["Dr.","Who","crossed","the","ave."] == 7
+p ["the","sgt.","opened","the","encl.","on","Fri.","pm"] == 13
+p [] == 0
+p ["no","abbrevs","4U"] == 0
+\end{asciihs}
+Folosiți {\em funcții elementare}, {\em descrieri de liste} și {\em funcții din biblioteci}, dar nu {\em recursie}.
+
+\part[1\half]
+Scrieți o a doua funcție \lstinline$q :: [String] -> Int$ care se comportă la fel ca \lstinline$p$, folosind doar {\em funcții elementare}, {\em recursie} și {\em funcții din biblioteci}, dar nu  {\em descrieri de liste}.
+
+\part[1]
+Scrieți o a treia funcție \lstinline$r :: [String] -> Int$ care se comportă la fel ca \lstinline$p$, de data aceasta folosind următoarele funcții de ordin înalt din biblioteca standard:
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+filter :: (a -> Bool) -> [a] -> [a]
+foldr :: (a -> b -> b) -> b -> [a] -> b
+\end{asciihs}
+Nu puteți folosi {\em recursie} și {\em descrieri de liste}.
+\end{parts}
+
+\question[2]{Elemente specifice limbajului Haskell.}
+
+Se dă următoarea secvență de declarații în Haskell:
+
+\begin{asciihs}
+type Id = String
+data AExp = Lit Int | Var Id | AExp :+: AExp | AExp :<=: AExp
+data Stmt = Decl Id | If AExp Stmt Stmt | Id := AExp | Stmt :; Stmt | Skip
+type Mem = [(Id, Int)]
+eval :: Stmt -> Mem
+\end{asciihs}
+
+Să se completeze definiția funcției \lstinline$eval$ pentru a putea calcula starea memoriei (Mem) în urma execuției instrucțiunii date ca argument.  Observatie: Puteți defini oricâte funcții ajutătoare.
+
+\lstinline$Decl$ inițializează o nouă varibilă în memorie (dacă nu exista deja), cu valoarea 0.
+\lstinline$If$ are aceeași semantică ca în C (dacă valoarea expresiei e diferită de 0 se execută prima instrucțiune, dacă nu cea de-a doua). Operatorul \lstinline$:;$ este operatorul de compunere secvențială a instrucțiunilor; semantica lui este: se execută prima instrucțiune mai întâi, apoi a doua instrucțiune se execută în starea de după execuția primei instrucțiuni. \lstinline$Skip$ este instrucțiunea vidă. 
+
+Punctaj: 2 puncte din care 0,5 rezolvarea, + 1 rezolvarea folosind monade + 0,5 rezolvarea folosind monada predefinită cea mai potrivită.
+\end{questions}
+
+Se acordă un punct din oficiu.
+\end{document}
+\question[24] 
+Recursivitate, descrieri de liste, map/filter/fold
+\begin{parts}
+\part[12]
+Scrieți o funcție \lstinline$f :: String -> String$ care repetă fiecare caracter succesiv din șirul de intrare odată în plus față de caracterul precedent, începând cu o primă apariție a primului caracter. De exemplu:
+\begin{asciihs}
+f "abcde"  == "abbcccddddeeeee"
+f "ZYw"    == "ZYYwww"
+f ""       == ""
+f "Inf1FP" == "Innfff1111FFFFFPPPPPP"
+\end{asciihs}
+Folosiți {\em funcții elementare}, {\em descrieri de liste} și {\em funcții din biblioteci}, dar nu {\em recursie}.
+\part[12]
+Scrieți o a doua funcție \lstinline$g :: String -> String$ care se comportă la fel ca \lstinline$f$, folosind doar {\em funcții elementare}, {\em recursie} și {\em funcții din biblioteci}, dar nu  {\em descrieri de liste}.
+\end{parts}
+
