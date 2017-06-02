@@ -45,7 +45,7 @@ eval (X :-: (X :+: X)) 4 = -4
 \end{asciihs}
 
 \part[2] 
-Scrieți o funcție \lstinline$protejeaza :: Expr -> Expr$ that transformă expresia pentru a evita apariția rezultatelor negative, in felul următor:
+Scrieți o funcție \lstinline$protejeaza :: Expr -> Expr$ care transformă expresia dată ca argument pentru a evita apariția rezultatelor negative, in felul următor:
 \begin{itemize}
 \item Constantele negative devin 0
 \item La toate operațiile de scădere se adaugă o verificare că descăzutul e mai mare decăt scăzătorul; în caz contrar, rezultatul scăderii va deveni 0.
