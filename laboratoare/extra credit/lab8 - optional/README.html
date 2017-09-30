@@ -1,0 +1,98 @@
+
+<html>
+<head>
+<title>Lab 8</title>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <link rel="stylesheet" type="text/css" href="https://www.dropbox.com/s/48bx1xvl42hr5gp/progdecl.css?dl=1">
+  <script type="text/javascript" src="https://www.dropbox.com/s/hk9x49z7vmznfp9/progdecl.js?dl=1">
+  </script>
+</head>
+
+<body>
+
+<h1> Input / Output </h1>
+
+<div class="entry-content">
+						<h2 id="functions">Functions</h2>
+<p>There are several important functions when dealing with interactive Haskell programs:</p>
+<h3 id="interact">interact</h3>
+<p><tt>interact</tt> takes a function of type <tt>String -&gt; String</tt>, and the entire input from stdin is passed to this function as its input, and the resulting string is output on stdout. Because of the nature of Haskell, the output will seem interactive as it gets evaluated bit by bit; but the function provided is written as if the whole input is specified at once. Remember to think of functional programming as not having a concept of time.</p>
+<h3 id="unlines">unlines</h3>
+<p><tt>unlines</tt> takes a list, and returns it interleaved with newlines, such as:</p>
+<pre><tt>Input: unlines ["aa","bb","cc","dd","ee"]
+Output: "aa\nbb\ncc\ndd\nee\n"</tt></pre>
+<h3 id="lines">lines</h3>
+<p><tt>lines</tt> is the reverse of unlines, essentially:</p>
+<pre><tt>Input: lines "aa\nbb\nbb"
+Output: ["aa","bb","bb"]</tt></pre>
+<h3 id="unlines">unwords</h3>
+<p><tt>unwords</tt> takes a list, and returns it interleaved with spaces, such as:</p>
+<pre><tt>Input: unwords ["aa","bb","cc","dd","ee"]
+Output: "aa bb cc dd ee"</tt></pre>
+<h3 id="lines">words</h3>
+<p><tt>words</tt> is the reverse of unwords, essentially:</p>
+<pre><tt>Input: words "aa bb bb"
+Output: ["aa","bb","bb"]</tt></pre>
+<h3 id="unlines">show</h3>
+<p><tt>show</tt> takes an element of a type instance of the <tt>Show</tt> typeclass and formats it as a string:</p>
+<pre><tt>Input: show 3.14
+Output: "3.14"</tt></pre>
+<h3 id="lines">read</h3>
+<p><tt>read</tt> is the reverse of <tt>show</tt>, essentially:</p>
+<pre><tt>Input: read "3.14" ::Float
+Output: 3.14</tt></pre>
+
+<h3>Exercises</h3>
+<ol>
+<li> Write a program which reads a line containing a space-separated list of floating point numbers and does the following
+<ol type = "a">
+<li> Prints on the first line the sum of the numbers
+<li> Prints on the second line the list of numbers in reversed order, separated by spaces
+<li> Prints on the third line the list of numbers sorted in ascending order separated by commas (lookup <tt>intersperse</tt>)
+</ol>
+<li> Write a program which reads a line containing an integer number <tt>n</tt>, followed by <tt>n</tt> lines, each containing a pair of numbers,
+and writes to the output the sum of each pair in the order read, each on a separate line.
+Example:
+<table><tr><th>Input</th><td>&nbsp;</td><th>Output</th></tr>
+<tr><td>
+<pre>
+3
+4 6
+2 6
+3 8
+</pre>
+</td>
+<td></td>
+<td>
+<pre>
+10
+8
+11
+</pre>
+</td>
+</tr>
+</table>  
+</ol>
+
+<h1>Binary Search Trees</h1>
+
+
+<h2>BST Library</h2>
+
+Write a Haskell module named <tt>BST</tt> defining a library containing a parameterized algebraic data type <tt>BST a</tt> used for representing binary search trees containing data of the parameter type <tt>a</tt>.
+A binary search tree over an ordered type <tt>a</tt> is a binary tree whose nodes are labelled with elements of type <tt>a</tt> satisfying for each node is labeled with a value that is not smaller than the label of any of the nodes in its left subtree, and is smaller then the label of any of the nodes in its right subtree.
+
+<p>The module must export the data type <tt>BST</tt> together with the following functions:
+<ul>
+<li><tt>add</tt> - given an element <tt>x :: a</tt> and a BST <tt>t</tt>, computes the BST obtained upon inserting <tt>x</tt> into <tt>t</tt>
+<li><tt>contains</tt> - given an element <tt>x :: a</tt> and a BST <tt>t</tt>, computes whether <tt>x</tt> can be found in <tt>t</tt>
+<li><tt>init</tt> - given a list of elements, computes a BST containing them.
+<li><tt>toList</tt> - given a BST computes the list of its elements obtained through an inorder traversal (Left-Node-Right).
+</ul>
+
+<h2>Main</h2>
+
+Write an executable Haskell module <tt>Main</tt> which uses the <tt>BST</tt> library described above to read from the console a line containing a space separated list of numbers and prints to the console the list sorted in ascending order.
+
+</body>
+</html>
