@@ -19,11 +19,11 @@
 \begin{itemize}
 \item Haskell e folosit în proiecte de Facebook, Google, Microsoft, \ldots
 \item mai multe la \url{https://wiki.haskell.org/Haskell_in_industry}
-\end{itemize} 
+\end{itemize}
 \item Programare funcțională în limbajul vostru preferat de programare:
 
 \begin{itemize}
-\item  Java 8, C++x11, C\#, Python, PHP, JavaScript 
+\item  Java 8, C++x11, C\#, Python, PHP, JavaScript
 \item Funcții anonime ($\lambda$-abstracții)
 \item Funcții de procesare a fluxurilor de date: filter, map, reduce
 \end{itemize}
@@ -79,9 +79,9 @@ firstK k xs = take k (sort xs)
 
 \begin{frame}{Elegant}
 \begin{itemize}
-\item Idei abstracte din matematică devin instrumente puternice practice 
+\item Idei abstracte din matematică devin instrumente puternice practice
 \begin{itemize}
-\item recursivitate, compunerea de funcții, functori, monade 
+\item recursivitate, compunerea de funcții, functori, monade
 \item folosirea lor permite scrierea de cod compact și modular
 \end{itemize}
 \vitem Rigurozitate:  ne forțează să gândim mai mult înainte, dar ne ajută să scriem cod mai corect și mai curat
@@ -97,21 +97,24 @@ firstK k xs = take k (sort xs)
 \end{frame}
 
 \begin{section}{Organizare}
-\begin{frame}{Plan (orientativ) cursuri}
-\begin{enumerate}
-\item Introducere
-\item Funcții, liste, recursie
-\item Operatori, funcții, recursie
-\item Funcții de ordin înalt; Map, Filter, Fold
-\item Tipuri de date algebrice
+\begin{frame}{Plan curs}
+\begin{itemize}
+\item Partea I: Noțiuni de bază de programare funcțională
+\begin{itemize}
+\item Funcții, recursie, funcții de ordin înalt, tipuri
+\item Operații pe liste: filtrare, transformare, agregare
+\end{itemize}
+\item Partea II: Noțiuni avansate de programare funcțională
+\begin{itemize}
+\item Polimorfism, clase de tipuri, modularizare
 \item Tipuri de date algebrice - evaluarea expresiilor
-\item Module și clase de tipuri
-\item Intrare/Ieșire
-\item Functori, Functori Applicativi, Monoizi
-\item Monade I
-\item Monade II
-\item Zippers
-\end{enumerate}
+\item Operațiuni Intrare/Ieșire
+\end{itemize}
+\item Partea III: Capitole speciale de Haskell și programare funcțională
+\begin{itemize}
+\item Agregare pe tipuri algebrice, monade, etc.
+\end{itemize}
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Resurse}
@@ -140,51 +143,52 @@ firstK k xs = take k (sort xs)
 \begin{frame}{Evaluare}
 \begin{block}{Notare}
 \begin{itemize}
-\item 3 teste (test1, test2, test3) și activitate laborator (lab)
-\item Nota finală: 40\% test1 + 40\% test2 + 20\% test3 + 10\% lab
+\item 2 parțiale (par1, par2), examen (ex) și evidențiere la laborator (lab)
+\item Nota finală: 1 (oficiu) + par1 + par2 + ex + lab
 \item Notele vor fi postate (doar) pe pagina Moodle a cursului.
 \end{itemize}
 \end{block}
 
-\begin{block}{Promovabilitate}
+\begin{block}{Condiție de promovabilitate}
 \begin{itemize}
 \item Nota finală \alert{cel puțin 5}
-\item Prezența la laborator e obligatorie 
 \begin{itemize}
-\item minim 50\% din nr. total de prezențe
-\end{itemize} 
+  \item 5 > 4.99
+\end{itemize}
 \end{itemize}
 \end{block}
 
 \end{frame}
 
-\begin{frame}{Test 1}
+\begin{frame}{Parțial 1}
 \begin{itemize}
-\item Pondere în calcularea notei finale: 40\%
-\item La laborator în a 6-a săptămână
+\item Valorează 4 puncte din nota finală
+\item Sâmbăta dintre a 6-a și a 7-a săptămână (11 noiembrie)
+\item Pe calculatoare
 \item Durată: 1 oră
-\item Acoperă materia din cursurile 1--4
+\item Acoperă materia din Partea I --- Noțiuni de bază
 \item Cu acces la materiale descărcate pe calculator
 \item Fără acces la rețea/internet
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Test 2}
+\begin{frame}{Parțial 2}
 \begin{itemize}
-\item Pondere în acordarea notei finale: 40\%
-\item La curs, înainte de vacanță (16 decembrie)
+\item Valorează 3 puncte din nota finală
+\item Sâmbăta dinainte de vacanța de iarnă  (16 decembrie)
+\item Pe calculatoare
 \item Durată: 1 oră
-\item Materia din cursurile 5--7
-\item Cu acces la materiale tipărite
+\item Materia din Partea II --- Noțiuni avansate
+\item Cu acces la materiale descărcate pe calculator
 \item Fără acces la rețea/internet
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Test 3}
+\begin{frame}{Examen final}
 \begin{itemize}
-\item Pondere în acordarea notei finale: 20\%
-\item În sesiune
-\item Materia din cursurile 8--12
+\item Valorează 2 puncte din nota finală
+\item În sesiune. pe hârtie
+\item Materia: toată
 \item Durată: 2 ore
 \item Cu acces la materiale tipărite
 \item Fără acces la rețea/internet
@@ -193,15 +197,11 @@ firstK k xs = take k (sort xs)
 
 \begin{frame}{Activitate laborator}
 \begin{itemize}
-\item Se va puncta activitatea în plus față de cerințele obșnuite
+\item Maxim 1 punct (bonus la nota finală)
+\item Se va nota activitatea în plus față de cerințele obșnuite
 \begin{itemize}
-\item Probleme suplimentare
-\item La alegerea profesorului din tematica laboratorului respectiv
-\item Rezolvate în timpul laboratorului
+\item La sugestia profesorului coordonator al laboratorului
 \end{itemize}
-\item Maxim un punct pe laborator, la latitudinea profesorului
-\item Maxim 10 puncte în total
-\item Se adaugă la nota finală cu o pondere de 10\%
 \end{itemize}
 \end{frame}
 
@@ -209,22 +209,23 @@ firstK k xs = take k (sort xs)
 \begin{itemize}
 \item Nu este necesar să dați toate testele pentru promovare
 \begin{itemize}
-\item ${\it test1} = 7,50 \wedge {\it test2} =  5 \implies {\it final} = 5$ 
+\item ${\it par1} = 6,25 \wedge {\it par2} =  5 \implies {\it final} = 5$
+\item ${\it par1} = 10 \implies {\it final} = 5$
 \item Dar este necesară nota agregată cel puțin 5
 \end{itemize}
 \vitem Pentru a lua nota finală 10 sunt necesare toate cele 3 teste
 \begin{itemize}
-\item ${\it test1} = 10 \wedge {\it test2} =  10 \wedge {\it lab} =  10 \implies {\it final} = 9$ 
-\item ${\it test1} = 10 \wedge {\it test2 =  10} \wedge {\it lab =  10} \wedge {\it test3} = 2,50$
+\item ${\it par1} = 10 \wedge {\it par2} =  10 \wedge {\it lab} =  10 \implies {\it final} = 9$
+\item ${\it par1} = 10 \wedge {\it par2 =  10} \wedge {\it lab =  10} \wedge {\it ex} = 2,50$
 
 \hfill $ \implies {\it final} = 9,50\approx 10$
-\item ${\it test1} = 9 \wedge {\it test2 =  9} \wedge {\it lab =  5} \wedge {\it test3} = 9$
+\item ${\it test1} = 9 \wedge {\it test2 =  9} \wedge {\it lab =  4} \wedge {\it test3} = 9$
 
 \hfill $ \implies {\it final} = 9,50\approx 10$
 \end{itemize}
 \vitem Cursurile se bazează unele pe altele
 \begin{itemize}
-\item $\forall j < i . $ Testul $i$ presupune construcții și concepte acoperite de Testul $j$
+\item $\forall j < i . $ examenul $i$ presupune construcții și concepte acoperite de examenul $j$
 \end{itemize}
 \end{itemize}
 \end{frame}
@@ -261,7 +262,7 @@ for(var i = 0; i < numbers.length; i++) {
 {\small
 \begin{lstlisting}
 numbers = [1,2,3,4,5]
-doubled = map (\n -> n * 2) numbers
+doubled = map (* 2) numbers
 \end{lstlisting}}
 \end{block}
 \end{frame}
@@ -356,12 +357,12 @@ fact 0 = 1
 fact n = n * fact(n-1)
 \end{asciihs}
 \end{block}
-\vfill 
+\vfill
 \begin{block}{Definiții folosind cazuri}
 \vspace{-2ex}
 \begin{asciihs}
 fact n
-  | n == 0 = 1
+  | n == 0    = 1
   | otherwise = n * fact(n-1)
 \end{asciihs}
 \end{block}
@@ -408,7 +409,7 @@ Prelude> :t (3+)
 \end{asciihs}
 \end{frame}
 
-\begin{frame}[fragile]{Expresii ca valori}{Funcțiile --- „cetățeni de rangul I”} 
+\begin{frame}[fragile]{Expresii ca valori}{Funcțiile --- „cetățeni de rangul I”}
 \begin{itemize}
 \item Funcțiile sunt valori care pot fi luate ca argument sau întoarse ca rezultat
 \begin{asciihs}
@@ -419,7 +420,7 @@ flip f x y = f y x
 -- sau flip ca valoare de tip functie
 flip = \ f x y -> f y x
 -- Currying
-flip = \f -> \x -> \y -> f y x 
+flip = \f -> \x -> \y -> f y x
 \end{asciihs}
 \item Aplicare parțială a funcțiilor
 \begin{asciihs}
