@@ -1,0 +1,5 @@
+https://stackoverflow.com/questions/2921345/how-do-i-convert-a-list-to-a-tuple-in-haskell
+
+list to tuple
+
+list2Tuple lst = read $ "(" ++ (init.tail.show) lst ++ ")"

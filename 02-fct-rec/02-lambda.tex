@@ -1,0 +1,595 @@
+\documentclass[xcolor=pdftex,romanian,colorlinks]{beamer}
+
+\usepackage[export]{adjustbox}
+\usepackage{../tslides}
+\usepackage[all]{xy}
+\lstset{language=Haskell}
+\lstset{escapeinside={(*@}{@*)}}
+\PrerenderUnicode{ăĂîÎȘșȚțâÂ}
+
+\AtBeginSection[]{
+  \begin{frame}
+  \vfill
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center,shadow=true,rounded=true]{title}
+    \usebeamerfont{title}\insertsectionhead\par%
+  \end{beamercolorbox}
+  \vfill
+  \end{frame}
+}
+
+
+\title[PF---$\lambda$ calcul]{Programare funcțional\u a}
+\subtitle{Introducere în Lambda-calcul --- Totul din (aproape) nimic}
+\date{}
+
+\begin{document}
+\frame{\titlepage}
+
+\begin{frame}{\(\lambda\)-calcul pentru toate problemele noastre}
+\protect\hypertarget{lambda-calcul-pentru-toate-problemele-noastre}{}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.2\textwidth]{lambda.png}
+\caption{All you need is Lambda}
+\end{figure}
+
+\begin{itemize}
+
+\item
+  Model de calcul introdus de Alonzo Church
+\item
+  Formalizează conceptul de computabilitate
+
+  \begin{itemize}
+  
+  \item
+    Ce clase de probleme pot fi rezolvate cu un calculator?
+  \end{itemize}
+\item
+  Baza programării funcționale
+
+  \begin{itemize}
+  
+  \item
+    toate limbajele funcționale sunt la bază un \(\lambda\)-calcul
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Ce este programarea funcțională}
+\protect\hypertarget{ce-este-programarea-funcux21bionalux103}{}
+
+\begin{itemize}
+
+\item
+  Paradigmă de programare ce folosește funcții modelate după funcțiile
+  din matematică
+\item
+  Programele se obțin ca o combinație de \structure{expresii}
+\item
+  Expresiile pot fi valori concrete, variable și \structure{funcții}
+\item
+  Funcțiile sunt expresii ce pot fi \structure{aplicate} unor intrări
+
+  \begin{itemize}
+  
+  \item
+    În urma aplicării, o funcție e \structure{redusă} sau \structure{evaluată}
+  \end{itemize}
+\item
+  Funcțiile sunt valori (\structure{first-class citizens})
+
+  \begin{itemize}
+  
+  \item
+    pot fi folosite ca argumente pentru alte funcții
+  \end{itemize}
+\end{itemize}
+
+\pause
+
+\begin{block}{Puritate}
+
+\begin{itemize}
+
+\item
+  Toate limbajele funcționale sunt bazate pe lambda-calcul
+\item
+  Unele limbaje încorporează și lucruri ce nu sunt reprezentabile în
+  lambda-calcul
+\item
+  Haskell e un limbaj \structure{pur}, pentru ca nu face acest compromis
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Ce este o funcție}
+\protect\hypertarget{ce-este-o-funcux21bie}{}
+
+\begin{itemize}
+
+\item
+  Relație între două mulțimi (de intrare și de ieșire)
+\item
+  Asociază fiecărei intrări \structure{exact} o ieșire
+
+  \begin{itemize}
+  
+  \item
+    transparență referențială: ieșirea e unic determinată de intrare
+  \end{itemize}
+\end{itemize}
+
+\begin{block}{Definirea și evaluarea funcțiilor}
+
+\begin{itemize}
+\item
+  Exemplu definire: \(f(x) = x + 1\)
+
+  \begin{itemize}
+  
+  \item
+    o funcție numită \(f\)
+  \item
+    care dată fiind o valoare de intrare, să zicem \(x\),
+  \item
+    obține valoarea de ieșire conform expresiei \(x + 1\)
+  \end{itemize}
+\item
+  Exemplu evaluare:
+
+  \(f(1) = 1 + 1\) (substitui \(x\) cu \(1\) in \(x + 1\)) \(= 2\)
+  (simplific)
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Structura \(\lambda\)-expresiilor}
+\protect\hypertarget{structura-lambda-expresiilor}{}
+
+\begin{block}{O expresie este definită recursiv astfel:}
+
+\begin{itemize}
+\item
+  este o variabilă (un identificator)
+
+  \(x\)
+\item
+  se obține prin \structure{abstractizarea} unei variabile \(x\) într-o altă
+  expresie \(e\)
+
+  \(\lambda x . e\) \hfill exemplu: \(\lambda x . x\)
+\item
+  se obține prin \structure{aplicarea} unei expresii \(e_1\) asupra alteia
+  \(e_2\)
+
+  \(e_1 \; e_2\) \hfill exemplu: \((\lambda x . x) y\)
+\end{itemize}
+
+\end{block}
+
+\begin{block}{Operația de abstractizare \(\lambda x . e\)}
+
+\begin{itemize}
+
+\item
+  reprezintă o funcție \structure{anonimă}
+\item
+  constă din două parți: \structure{antetul} \(\lambda x .\) și \structure{corpul}
+  \(e\)
+\item
+  variabila \(x\) din anter este \structure{parametrul} funcției
+
+  \begin{itemize}
+  
+  \item
+    \structure{leagă} aparițiile variabilei \(x\) în \(e\) (ca un
+    cuantificator)
+  \item
+    Exemplu: \(\lambda x . x y\) --- \(x\) e \structure{legată}, \(y\) e
+    \structure{liberă}
+  \end{itemize}
+\item
+  Corpul funcției reprezintă expresia care definește funcția
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{\(\alpha\)-echivalență}
+
+\begin{itemize}
+
+\item
+  Redenumirea unui argument și a tuturor aparițiilor sale legate
+
+  \begin{itemize}
+  
+  \item
+    Exemplu:
+    \(\lambda x . x \equiv_\alpha \lambda y . y \equiv_\alpha \lambda a . a\)
+  \item
+    Asemanator cu: \(f(x) = x\) vs \(f(y) = y\) vs \(f(a) = a\)
+  \end{itemize}
+\item
+  Numele asociat argumentului e pur formal
+
+  \begin{itemize}
+  
+  \item
+    E necesar doar ca să îl pot recunoaște în corpul funcției
+  \item
+    Există reprezentări fără argumente
+    (e.g.~\href{https://en.wikipedia.org/wiki/De_Bruijn_index}{indecși
+    de Bruijn})
+  \end{itemize}
+\item
+  \(\alpha\)-echivalența redenumește \structure{doar} aparițiile legate ale
+  argumentului
+
+  \begin{itemize}
+  \item
+    Exemple:
+
+    \((\lambda x . x) x \not\equiv_\alpha (\lambda y . y) y\)
+
+    \((\lambda x . x) x \equiv_\alpha (\lambda y . y) x\)
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{\(\beta\)-reducție}
+\protect\hypertarget{beta-reducux21bie}{}
+
+\begin{block}{Cum aplicăm o funcție (anonimă) unui argument?}
+
+înlocuim aplicația cu corpul funcției în care substituim aparițiile
+variabilei legate cu argumentul dat.
+
+\[(\lambda {\color{red}x} . {\color{darkred}e}) {\color{green!50!black}e'} \rightarrow_\beta {\color{darkred}e}[{\color{red}x} := {\color{green!50!black}e'}]\]
+
+\end{block}
+
+\begin{block}{Exemple}
+
+\[(\lambda {\color{red}x} . {\color{darkred}x}) {\color{green!50!black}y} \rightarrow_\beta {\color{darkred}x}[{\color{red}x} := {\color{green!50!black}y}] = {\color{green!50!black}y}\]
+
+\[(\lambda {\color{red}x} . {\color{darkred}x \; x}) {\color{green!50!black} \lambda x . x} \rightarrow_\beta {\color{darkred}x \; x}[{\color{red}x} := {\color{green!50!black} \lambda x . x}] =
+(\lambda {\color{red}x} . {\color{darkred}x}) {\color{green!50!black} \lambda x . x} \rightarrow_\beta {\color{darkred}x }[{\color{red}x} := {\color{green!50!black} \lambda x . x}] = \lambda x . x\]
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{\(\beta\)-reducție --- alte exemple}
+\protect\hypertarget{beta-reducux21bie-alte-exemple}{}
+
+\begin{block}{Aplicarea funcțiilor se grupează la stânga}
+
+\((\lambda x.x)(\lambda y.y)z = ((\lambda x.x)(\lambda y.y))z\)
+
+\pause
+
+\(((\lambda x.x)(\lambda y.y))z \rightarrow_\beta (x[x := \lambda y.y])z = (\lambda y.y) z\)
+
+\((\lambda y.y) z \rightarrow_\beta y [ y := z ] = z\)
+
+\end{block}
+
+\begin{block}{Funcție cu variabile libere}
+
+\((\lambda x.x\; y)z \rightarrow_\beta (x\; y[x := z]) = z\; y\)
+
+\end{block}
+
+\begin{block}{\(lambda\) are are prioritate foarte mică}
+
+\(\lambda x . x\; \lambda x . x = \lambda x . (x\; (\lambda x . x))\)
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Mai multe argumente}
+\protect\hypertarget{mai-multe-argumente}{}
+
+\begin{itemize}
+\item
+  Funcțiile anonime au \structure{un singur} parametru
+
+  \begin{itemize}
+  
+  \item
+    și pot fi aplicate \structure{unui singur} argument
+  \end{itemize}
+\item
+  Simulăm mai multe argumente prin abstractizare repetată
+
+  Exemplu: \(\lambda x . \lambda y . x\; y\)
+
+  \begin{itemize}
+  
+  \item
+    Citim: primește ca argumente \(x\) și \(y\) și aplică pe \(x\) lui
+    \(y\)
+  \item
+    De fapt e o funcție de \(x\) care în urma aplicării dă o funcție de
+    \(y\)
+  \item
+    Procesul se numește Currying (de la Haskell Curry)
+  \item
+    Pentru simplificarea notației, scriem \(\lambda x\; y . x\; y\) în
+    loc de \(\lambda x . \lambda y . x \; y\)
+  \end{itemize}
+\end{itemize}
+
+\begin{block}{Exemplu de evaluare}
+
+\((\lambda x\; y.x\; y)(\lambda z. a) 1 = (\lambda x . (\lambda y.x\; y)) (\lambda z. a) 1 = ((\lambda x . (\lambda y.x\; y)) (\lambda z. a)) 1 \onslide<2->{\rightarrow_\beta ((\lambda y.x\; y)[x := \lambda z.a]) 1 = (\lambda y . (\lambda z . a) y) 1}  \onslide<3->{\rightarrow_\beta ((\lambda z.a) y)[y := 1] = (\lambda z . a) 1} \onslide<4->{\rightarrow_\beta a[z := y] = a}\)
+
+\end{block}
+
+\end{frame}
+
+
+\begin{frame}{Evaluarea ca simplificare}
+\protect\hypertarget{evaluarea-ca-simplificare}{}
+
+\begin{block}{Forma normală \(\beta\)}
+
+\begin{itemize}
+
+\item
+  O \(\lambda\)-expresie este în forma normală \(\beta\) dacă regula
+  \(\beta\) nu mai poate fi aplicată asupra ei.
+\item
+  Corespunde ideii de expresie complet evaluată
+\item
+  Evaluarea unei \(\lambda\)-expresii constă în simplificarea ei
+
+  \begin{itemize}
+  
+  \item
+    folosind regula \(\beta\) până la ajungerea la o formă normală
+  \end{itemize}
+\item
+  O \(\lambda\)-expresie nu poate avea mai multe forme normale
+
+  \begin{itemize}
+  
+  \item
+    modulo \(\alpha\)-conversie
+  \end{itemize}
+\end{itemize}
+
+\end{block}
+
+\begin{block}{Exemple}
+
+\begin{itemize}
+
+\item
+  \(\lambda x . x\) este în formă normală
+\item
+  \((\lambda x .x ) z\) nu este în formă normală (\(z\) este)
+\item
+  \(z (\lambda x .x )\) este în formă normală
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Combinatori}
+\protect\hypertarget{combinatori}{}
+
+\begin{itemize}
+
+\item
+  \structure{Combinatorii} sunt \(\lambda\)-expresii fără variabile libere
+\item
+  Scopul lor este de a ``combina'' argumentele primite la intrare
+\end{itemize}
+
+\begin{block}{Contraexemple}
+
+\begin{itemize}
+
+\item
+  \(\lambda y. x\) --- \(y\) e legată, dar \(x\) este liberă
+\item
+  \(\lambda x. x\; z\) --- \(x\) e legată, dar \(z\) este liberă
+\end{itemize}
+
+\end{block}
+
+\begin{block}{Exemple distinse}
+
+\begin{itemize}
+
+\item
+  \textbf{combinatorul I}: funcția identitate \(\lambda x. x\)
+\item
+  \textbf{combinatorul K}: proiecția stângă \(\lambda x\; y.x\)
+\item
+  \textbf{combinatorul S}: substituție \(\lambda x\; y\; z. x z (y z)\)
+\item
+  orice \(\lambda\)-expresie poate fi obținută dintr-o combinație de
+  S,K, I
+\item
+  Vă place Tetris? Încercați
+  \href{https://dirk.rave.org/combinatris/}{Combinatris}
+\end{itemize}
+
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Divergență}
+\protect\hypertarget{divergenux21bux103}{}
+
+\begin{itemize}
+\item
+  Nu toate \(\lambda\)-expresiile au formă normală
+
+  \begin{itemize}
+  
+  \item
+    cele care au se numesc convergente
+  \item
+    celelalte se numesc divergente
+  \end{itemize}
+\item
+  Exemplu de expresie divergentă: \textbf{combinatorul \(\omega\)}
+
+  \((\lambda x. x\; x) (\lambda x. x\; x) \onslide<2->{\rightarrow_\beta (x\; x)[x := \lambda x. x\; x] = (\lambda x. x\; x) (\lambda x. x\; x)}\)
+\end{itemize}
+
+\end{frame}
+
+\section{Mai multe despre currying}
+
+\begin{frame}{Func\ts ii \^{\i}n matematic\u a}
+
+  \begin{itemize}
+  
+  \item Fie $f:A\times B\to C$ o func\ts ie. \^{I}n mod uzual scriem
+  
+  $f(x,y)=z$  unde $x\in A$, $y\in B$ \sh i $z\in C$.
+  
+  \vitem Pentru $x\in A$ (arbitrar, fixat) definim
+  
+  \structure{$f_x:B\to C$,  $f_x(y)=z$} dac\u a \sh i numai dac\u a $f(x,y)=z$.
+  
+  Func\ts ia $f_x$ se ob\ts ine prin \structure{aplicarea par\ts ial\u a} a func\ts iei $f$.
+\only<2>{
+  \bigskip
+  
+  In mod similar putem defini {\it aplicarea par\ts ial\u a} pentru orice $y\in B$
+  
+  \medskip
+  
+  $f^y:A\to C$,  $f^y(x)=z$ dac\u a \sh i numai dac\u a $f(x,y)=z$.
+}
+
+  \item<3-> Dac\u a not\u am \structure{$B\to C \stackrel{not}{=}\{h:B\to C\mid h\mbox{ func\ts ie}\}$}
+  
+  observ\u am c\u a \structure{$f_x\in B\to C $} pentru orice $x\in A$.
+  
+  \item<4-> Asociem lui $f$ func\ts ia
+  
+  \structure{$cf:A\to (B\to C)$, $\,\, cf(x)=f_x$}
+  
+  
+  Observ\u am c\u a pentru fiecare element $x\in A$, func\ts ia $cf$ \^{\i}ntoarce ca rezultat func\ts ia $f_x\in B\to C$,
+  adic\u a
+  
+  \structure{$cf(x)(y)=z$ dac\u a \sh i numai dac\u a $f(x,y)=z$}
+  
+  \end{itemize}
+  \onslide<5>
+  
+  \begin{block}{Forma {\bf curry}}
+  Vom spune c\u a func\ts ia \structure{$cf$} este {\it forma curry} a func\ts iei $f$.
+  \end{block}
+  
+  \end{frame}
+  
+\begin{frame}{Currying}
+  \begin{block}{Teorem\u a}
+  Mul\ts imile $(A\times B)\to C$ \sh i $A\to (B\to C)$ sunt echipotente.
+  \end{block}
+
+  \begin{block}{}
+  \structure{"Currying"} este procedeul prin care o func\ts ie cu mai multe argumente este transformat\u a \^{\i}ntr-o func\ts ie care are un singur argument \sh i \^{\i}ntoarce o alt\u a func\ts ie.
+  \end{block}
+  \bigskip
+  
+\end{frame}
+  
+  \begin{frame}[fragile]{Currying in Haskell}
+  \begin{block}{Teorem\u a}
+  Mul\ts imile $(A\times B)\to C$ \sh i $A\to (B\to C)$ sunt echipotente.
+  \end{block}
+
+  \begin{block}{Observa\ts ie}
+  Func\ts iile \structure{curry} \sh i \structure{uncurry} din Haskell stabilesc bijec\ts ia din teorem\u a:
+  \begin{asciihs}
+  curry :: ((a, b) -> c) -> a -> b -> c
+  curry f a b = f (a, b)
+
+  uncurry :: (a -> b -> c) -> (a, b) -> c
+  uncurry f (a,b) = f a b
+  \end{asciihs}
+  \end{block}
+  
+  \end{frame}
+ 
+%  \begin{frame}[fragile]{De la matematic\u a la Haskell}
+%  
+%  Func\ts ia  $f:$ Int $\times$ String $\to$ String
+%  
+%  $f (x,y)= \left\{\begin{array}{ll}
+%  z, &  |y|>=x, |z|=x, y =zw\\
+%  y, &  0<|y|<x\\
+%  "", & x<=0
+%   \end{array}\right.$
+%  
+%  poate fi definit\u a \^{\i}n Haskell astfel:
+%  
+%  \begin{asciihs}
+%  f :: (Int, String) -> String
+%  f (n,s) = take n s
+%  \end{asciihs}
+%  \pause
+%  Observ\u am c\u a:
+%  
+%  \begin{asciihs}
+%  Prelude> let cf = curry f
+%  Prelude> :t cf
+%  cf :: Int -> String -> String
+%  Prelude> f(1,"abc")
+%  "a"
+%  Prelude> cf 1 "abc"
+%  "a"
+%  \end{asciihs}
+%  
+%  \end{frame}
+%  
+  
+  
+  
+  
+  \begin{frame}{Currying în Haskell}
+ 
+  
+  \begin{itemize}
+  \item In Haskell toate funcțiile sunt forma {\bf curry}, deci au un singur argument.
+  \medskip
+  
+  \item Operatorul  $\to$ pe tipuri este asociativ la dreapta, adic\u a tipul
+  \structure{$a_1 \to a_2 \to  \cdots  \to  a_n$}   \^{\i}l g\^ andim ca
+  \structure{$a_1\to (a_2\to \cdots (a_{n-1}\to a_n)\cdots )$}.
+  
+  \medskip
+  
+  \item  Aplicarea func\ts iilor este  asociativ\u a la st\^ anga, adic\u a
+  
+  expresia \structure{$f \,\, x_1\cdots    x_n$} o  g\^ andim ca
+  \structure{$ (\cdots ((f\,\, x_1) \, x_2)\cdots x_n)$}.
+  \end{itemize}
+  \end{frame}
+  
+ 
+
+
+\end{document}

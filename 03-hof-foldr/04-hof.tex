@@ -28,6 +28,505 @@
   \titlepage
 \end{frame}
 
+\begin{section}{Operatori. Secțiuni}
+  \begin{frame}[fragile]{Operatorii sunt func\ts ii cu dou\u a argumente}
+  \begin{block}{Operatorii \^{\i}n Haskell}
+  \begin{itemize}
+  \item  au dou\u a argumente
+  \item pot fi  apela\ts i   folosind nota\ts ia infix
+  \item  pot fi  defini\ts i folosind numai "simboluri" (ex: *!*)
+  \begin{itemize}
+  \item \^{\i}n defini\ts ia tipului operatorul este scris \^{\i}ntre paranteze
+  \end{itemize}
+  \end{itemize}
+  \end{block}
+  \pause
+  \begin{itemize}
+  \item<2-> {Operatori predefini\ts i}
+  \begin{asciihs}
+  (||) :: Bool -> Bool -> Bool
+  (:) :: a -> [a] -> [a]
+  (+) :: Num a => a -> a -> a
+  \end{asciihs}
+  
+  \item <3-> Operatori defini\ts i de utilizator
+  
+  \begin{asciihs}
+  (&&&) :: Bool -> Bool -> Bool  -- atentie la paranteze
+  \end{asciihs}
+  
+  \vspace{-2ex}
+  \begin{asciihs}
+  True &&& b = b
+  False &&& _ = False
+  \end{asciihs}
+  \end{itemize}
+  \end{frame}
+  
+  
+  \begin{frame}[fragile]{Funcții ca operatori}
+  \begin{asciihs}
+  Prelude> mod 5 2
+  1
+  Prelude> 5 `mod` 2
+  1
+  \end{asciihs}
+  
+  \medskip\pause
+  
+  
+  \begin{itemize}
+  \item operatorii care sunt defini\ts i \^{\i}n form\u a infix, sunt apela\ts i \^{\i}n form\u a prefix folosind paranteze
+  
+   2 + 3 == (+) 2 3
+  
+  \medskip
+  
+  \item operatorii care sunt defini\ts i \^{\i}n form\u a prefix, sunt apela\ts i \^{\i}n form\u a infix folosind `  `
+  
+  mod 5 2 == 5 `mod` 2
+  \end{itemize}
+  \medskip
+  \pause
+  \begin{asciihs}
+  elem :: a -> [a] -> Bool
+  Prelude> 1 `elem` [1,2,3]
+  True
+  \end{asciihs}
+  \pause
+  
+  \end{frame}
+  
+  \begin{frame}[fragile]
+  {Precedență și asociativitate}
+  \begin{asciihs}
+  Prelude> 3+5*4:[6]++8-2+3:[2]==[23,6,9,2]||True==False
+  \end{asciihs}
+  \vspace{-2ex}
+  \onslide<2->
+  \begin{asciihs}
+  True
+  \end{asciihs}
+  
+  \onslide<3->
+  \hspace*{-1ex}\begin{tabular}{|l|l|l|l|}
+  \hline
+  Precedence & Left associative &	Non-associative &	Right associative\\
+  \hline
+  9&	\lstinline$!!$&	&	\lstinline$.$
+  \\\hline
+  8&	&	&	\lstinline$^$, \lstinline$^^$, \lstinline$**$
+  \\\hline
+  7&	\lstinline$*$, \lstinline$/$, \lstinline$`div`$, \lstinline$`mod`$, &&
+  \\
+  &\lstinline$`rem`$, \lstinline$`quot`$		&&
+  \\\hline
+  6&	\lstinline$+$, \lstinline$-$ &&
+  \\\hline
+  5&	&	&	\lstinline$:$, \lstinline$++$
+  \\\hline
+  4&	&	\lstinline$==$, \lstinline$/=$, \lstinline$<$, \lstinline$<=$, \lstinline$>$, \lstinline$>=$,&
+  \\
+  && \lstinline$`elem`$, \lstinline$`notElem`$	&
+  \\\hline
+  3&	&	&	\lstinline$&&$
+  \\\hline
+  2&	&	&	\lstinline$||$
+  \\\hline
+  1&	\lstinline$>>$, \lstinline$>>=$	&	&
+  \\\hline
+  0&	&	&	\lstinline|$|, \lstinline|$!|, \lstinline$`seq`$
+  \\\hline
+  \end{tabular}
+  \end{frame}
+  
+  
+  
+  
+  
+  \begin{frame}[fragile]
+  {Asociativitate}
+  
+  \begin{block}
+  {Operatorul \alert{-} asociativ la stanga}
+  \onslide<1->
+  \lstinline$5 - 2 - 1 == (5 - 2) - 1$\hfill \lstinline$--$ \hfill \lstinline$/= 5 - (2 - 1)$
+  \end{block}
+  
+  \onslide<2->
+  \begin{block}
+  {Operatorul \alert{:} asociativ la dreapta}
+  \onslide<2->
+  \lstinline$5 : 2 : [] == 5 : (2 : [])$
+  \end{block}
+  
+  \onslide<3->
+  \begin{block}
+  {Operatorul \alert{++} asociativ la dreapta
+  }
+  \vspace{-2ex}
+  \begin{asciihs}
+  (++) :: [a] -> [a] -> [a]
+  [] ++ ys = ys
+  (x:xs) ++ ys = x:(xs ++ ys)
+  \end{asciihs}
+  
+  \lstinline$l1 ++ l2 ++ l3 ++ l4 ++ l5 == l1 ++ (l2 ++ (l3 ++ (l4 ++ l5)))$
+  \end{block}
+  
+  \onslide<4->
+  \begin{block}
+  {Care este complexitatea aplicării operatorului \alert{++}?}
+  \begin{itemize}
+  \item<5->
+  liniară în lungimea primului argument
+  \end{itemize}
+  \end{block}
+  \end{frame}
+  
+  
+  
+  \begin{frame}[fragile]{Sec\ts iuni ("operator sections")}
+  \begin{block}{}
+  Sec\ts iunile operatorului binar \structure{op} sunt
+   \structure{(op e)} \sh i \structure{(e op)}.
+  
+   Matematic, ele corespund aplic\u arii par\ts iale a func\ts iei \structure{op}.
+  \end{block}
+  \begin{itemize}
+  \item sec\ts iunile lui \structure{||} sunt
+   \structure{(|| e)} \sh i \structure{(e ||)}
+  \onslide<2->
+  \begin{asciihs}
+  Prelude> :t (|| True)
+  (|| True) :: Bool -> Bool
+  Prelude> (|| True) False  -- atentie la paranteze
+  True
+  \end{asciihs}
+  \onslide<3->
+  \vspace*{-2ex}
+   \begin{asciihs}
+  Prelude> || True False
+  \end{asciihs}
+  \vspace*{-1.5ex}
+  \textcolor{red}{\tt   error}
+  \onslide<4>
+  \item sec\ts iunile lui \structure{<+>} sunt
+   \structure{(<+> e)} \sh i \structure{(e <+>)}, unde
+   \begin{asciihs}
+  Prelude> let x <+> y = x+y+1  -- definit de utilizator
+  Prelude> :t (<+> 3)
+  (<+> 3) :: Num a => a -> a
+  Prelude> (<+> 3) 4
+  8
+  \end{asciihs}
+  
+  \end{itemize}
+  \end{frame}
+  
+  
+  
+  
+  \begin{frame}[fragile]{Sec\ts iuni }
+  \begin{itemize}
+  \item Sec\ts iunile operatorului \structure{(:)}\pause
+  \begin{asciihs}
+  Prelude> (2:)[1,2]
+  [2,1,2]
+  Prelude> (:[1,2]) 3
+  [3,1,2]
+  \end{asciihs}
+  
+  \pause
+  
+  \item Sec\ts iunile sunt afectate de \structure{asociativitatea} \sh i \structure{preceden\ts a} operatorilor.
+  
+  
+  \begin{asciihs}
+  Prelude> :t (+ 3 * 4)
+  (+ 3 * 4) :: Num a => a -> a
+  
+  Prelude> :t (* 3 + 4)
+  (*@\textcolor{red}{\tt error}@*) -- + are precedenta mai mica decat *
+  Prelude> :t (* 3 * 4)
+  (*@\textcolor{red}{\tt   error}@*)  -- * este asociativa la stanga
+  Prelude> :t (3 * 4 *)
+  (3 * 4 *) :: Num a => a -> a
+  \end{asciihs}
+  
+  \end{itemize}
+  \end{frame}
+  
+  \begin{frame}[fragile]{Func\ts ii anonime \sh i sec\ts iuni}
+  \begin{block}{Func\ts ii anonime = lambda expresii}
+  {\bf \textbackslash x1 x2 $\cdots$ xn -> expresie}
+  \end{block}
+  \pause
+  
+  \begin{asciihs}
+  Prelude> (\x -> x + 1) 3
+  4
+  Prelude> inc = \x -> x + 1
+  Prelude> add = \x y -> x + y
+  Prelude> aplic = \f x -> f x
+  \end{asciihs}
+  \begin{block}{}
+  Sectiunile sunt definite prin lambda expresii:
+  \begin{asciihs}
+  (x +) = \y -> x+y
+  (+ y) = \x -> x+y
+  \end{asciihs}
+  
+  \end{block}
+  \end{frame}
+  
+  
+  
+  
+  \begin{frame}[fragile]{Compunerea funcțiilor --- operatorul $.$}
+  \begin{block}{Matematic}
+  Date fiind $f : A \rightarrow B$ și $g : B \rightarrow C$, compunerea lor, notată
+  $g \circ f : A \rightarrow C$ este dată de formula \[(g \circ f)(x) = g(f(x))\]
+  \end{block}
+  
+  \medskip
+  
+  \begin{block}{În Haskell}
+  \begin{asciihs}
+  (.) :: (b -> c) -> (a -> b) -> (a -> c)
+  (g . f) x = g (f x)
+  \end{asciihs}
+  \end{block}
+  \end{frame}
+  
+  \begin{frame}[fragile]{Exemplu}
+  \begin{asciihs}
+  Prelude> z=1
+  Prelude> t=2
+  Prelude> sqrt(z^2+t^2)
+  2.23606797749979
+  
+  Prelude> x = 1 :: Integer
+  Prelude> y = 3 :: Integer
+  Prelude> sqrt fromIntegral (x^2+y^2)
+  (*@\color{red}{<interactive>:33:1: error:}@*)
+  
+  Prelude> sqrt  (fromIntegral (x^2+y^2))
+  3.1622776601683795
+  
+  Prelude> sqrt . fromIntegral (x^2+y^2)
+  (*@\color{red}{<interactive>:36:1: error:}@*@*)
+  
+  Prelude> (sqrt . fromIntegral) (x^2+y^2)
+  3.1622776601683795
+  \end{asciihs}
+  \end{frame}
+  
+  
+  
+  
+  \begin{frame}[fragile]{Operatorul $\$ $}
+  
+  \begin{block}{ Operatorul \structure{(\$)} are preceden\ts a 0.}
+  \begin{asciihs}
+  ($) :: (a -> b) -> a -> b
+  f $ x = f x
+  \end{asciihs}
+  \end{block}
+  \medskip
+  
+  \begin{asciihs}
+  Prelude> sqrt 3 + 4 +9
+  14.732050807568877
+  Prelude> sqrt (3 + 4 +9)
+  4.0
+  Prelude> sqrt (*@\$@*) 3 + 4 +9
+  4.0
+  \end{asciihs}
+  
+  \begin{block}{Operatorul \structure{(\$)} este asociativ la dreapta.}
+  \begin{asciihs}
+  Prelude> sqrt $ fromIntegral $ x^2+y^2
+  3.1622776601683795
+  \end{asciihs}
+  
+  \end{block}
+  \end{frame}
+  
+  \end{section}
+  
+
+
+\begin{section}{Func\ts ii de nivel \^{\i}nalt}
+
+\begin{frame}[fragile]{Funcțiile sunt valori}{Funcțiile --- „cetățeni de rangul I”}
+\begin{block}{} \structure{Funcțiile} sunt \structure{valori},
+
+ care pot fi trimise  ca argument sau întoarse ca rezultat
+ \end{block}
+
+
+\structure{Exemplu:}
+
+\begin{asciihs}
+flip :: (a -> b -> c) -> (b -> a -> c)
+\end{asciihs}\pause
+\begin{itemize}
+\item definiția cu lambda expresii
+\begin{asciihs}
+flip f = \x y -> f y x
+\end{asciihs}
+\item definiția folosind șabloane
+\begin{asciihs}
+flip f x y = f y x
+\end{asciihs}
+\item {\bf flip} ca valoare de tip funcție
+\begin{asciihs}
+flip = \f x y -> f y x
+\end{asciihs}
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Funcții de ordin înalt}{map}
+\begin{asciihs}
+map :: (a -> b) -> [a] -> [b]
+map f l = [f x | x <- l]
+
+Prelude> map (* 3) [1,3,4]
+[3,9,12]
+\end{asciihs}
+
+\structure{Un exemplu mai complicat:}
+
+\begin{asciihs}
+Prelude> map ((*@\$@*) 3) [(4 +), (10 *), (^ 2), sqrt]
+(*@\pause@*)[7.0,30.0,9.0,1.7320508075688772]
+\end{asciihs}
+\pause
+\^{I}n acest caz:
+\begin{itemize}
+\item primul argument este o sectiune a operatorului (\$)
+\item al doilea argument este o lista de functii
+\medskip
+
+map (\$ x) [ f$_1$,$\ldots$, f$_n$ ] == [ f$_1$ x,$\ldots$, f$_n$ x ]
+\end{itemize}
+
+
+\end{frame}
+
+
+\begin{frame}[fragile]{Funcții de ordin înalt}{filter}
+\begin{asciihs}
+
+filter :: (a -> Bool) -> [a] -> [a]
+filter p l = [x | x <- l, p x]
+
+Prelude> filter (>= 2) [1,3,4]
+[3,4]
+\end{asciihs}
+\pause
+
+\structure{Compunere și aplicare}
+
+\begin{asciihs}
+Prelude> let f l = map (* 3) (filter (>= 2) l)
+Prelude> f [1,3,4]
+(*@\pause@*)[9, 12]                   -- [ x * 3 | x <- [1,3,4], x >=2 ]
+\end{asciihs}
+\pause
+\begin{itemize}
+\item defini\ts ia compozi\ts ional\u a  (pointfree style)
+
+\begin{asciihs}
+f = map (* 3) . filter (>=2)
+\end{asciihs}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Funcții de ordin înalt}{foldr și foldl}
+\begin{block}{}
+\begin{asciihs}
+foldr :: (a -> b -> b) -> b -> [a] -> b
+foldr o z [a1, a2, a3, ..., an] ==
+    a1 `o` (a2 `o` (a3 `o` (... (an `o` z) ...)))
+\end{asciihs}
+\end{block}
+
+\begin{asciihs}
+Prelude> foldr (*) 1  [1,3,4]
+12                  -- product [1,3,4]
+\end{asciihs}
+
+\pause
+
+\begin{block}{}
+\begin{asciihs}
+foldl :: (b -> a -> b) -> b -> t a -> b
+foldl o z [a1, a2, a3, ..., an] ==
+    ( ... (((z `o` a1) `o` a2) `o` a3) `o` ... an)
+\end{asciihs}
+\end{block}
+
+\begin{asciihs}
+Prelude> foldl (flip (:)) [] [1,3,4]
+(*@\pause@*)[4,3,1]  -- (*@\color{blue}{\it de ce? intelegeti modul de functionare!}@*)
+\end{asciihs}
+\end{frame}
+
+
+\begin{frame}[fragile]{Filtrare, transformare, agregare}
+  {Suma pătratelor elementelor pozitive}
+\begin{itemize}
+  \item Folosind descrieri de liste și funcții de agregare standard
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = sum [x * x | x <- xs, x > 0]
+\end{asciihs}
+\item Folosind funcții auxiliare
+\begin{asciihs}
+f xs = foldr (+) 0 (map sqr (filter pos xs))
+  where
+    sqr x = x * x
+    pos x = x > 0
+\end{asciihs}
+\item Folosind funcții anonime
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0
+    (map (\x -> x * x) (filter (\x -> x > 0) xs))
+\end{asciihs}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Filtrare, transformare, agregare}
+  {Suma pătratelor elementelor pozitive}
+\begin{itemize}
+  \item Folsind secțiuni și operatorul \$ (parametru explicit)
+\begin{asciihs}
+f :: [Int] -> Int
+f xs = foldr (+) 0 (*@\color{blue}\$@*) map (^ 2)  (*@\color{blue}\$@*) filter (> 0) (*@\color{blue}xs @*)
+\end{asciihs}
+
+\bigskip
+
+\item Definiție compozițională (pointfree style)
+\begin{asciihs}
+f :: [Int] -> Int
+f = foldr (+) 0 . map ( ^ 2) . filter ( > 0)
+\end{asciihs}
+\end{itemize}
+
+
+\end{frame}
+
+
+
+\end{section}
+
+
 \section{Map (Transformarea fiecărui element dintr-o listă)}
 
 \subsection{Exemple}
